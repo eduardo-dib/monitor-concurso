@@ -6,10 +6,13 @@ import dev.eduardodib.domain.usuario.LoginResponseDTO;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.service.token.TokenService;
 import dev.eduardodib.service.usuario.UsuarioService;
+import dev.eduardodib.exception.ErrorException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+
 
 @Path("/usuarios")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,21 +32,23 @@ public class UsuarioResource {
     @POST
     @Path("/cadastrar")
     public Response cadastrar(CadastroRequest request) {
+
+        String usuarioCadastrarUrl = "/usuarios/cadastrar";
         try {
             UsuarioEntity usuario = usuarioService.cadastrar(request.nome(), request.email(), request.senha());
             return Response.status(Response.Status.CREATED)
                     .entity(CadastroUsuarioResponseDTO.fromEntity(usuario))
                     .build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.CONFLICT)
-                    .entity(e.getMessage())
-                    .build();
+            return ErrorException.conflict(e.getMessage(), usuarioCadastrarUrl, e);
         }
     }
 
     @POST
     @Path("/login")
     public Response login(LoginRequest request) {
+
+        String usuarioLoginUrl = "/usuarios/login";
         UsuarioEntity usuario = UsuarioEntity.findByEmail(request.email());
 
         if (usuario == null || !usuarioService.verificarSenha(request.senha(), usuario.senhaHash)) {
