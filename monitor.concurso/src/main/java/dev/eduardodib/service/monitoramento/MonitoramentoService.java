@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @ApplicationScoped
 public class MonitoramentoService {
@@ -37,6 +39,8 @@ public class MonitoramentoService {
 
         if (response == null || response.gazettes == null) return;
 
+        List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
+
         for (ApiResponse.Gazette gazette : response.gazettes) {
             boolean jaExiste = PublicacaoEncontradaEntity
                     .count("link = ?1 and alerta = ?2", gazette.url, alerta) > 0;
@@ -53,14 +57,16 @@ public class MonitoramentoService {
             publicacao.territorio = gazette.territorioId;
 
             if (gazette.trechosDestacados != null && !gazette.trechosDestacados.isEmpty()) {
-                publicacao.conteudo = gazette.trechosDestacados.getFirst();
+                publicacao.conteudo = gazette.trechosDestacados.get(0);
             }
 
             publicacao.persist();
-            publicacao.persist();
-            notificacaoService.notificarMatch(publicacao);
+            novas.add(publicacao);
             LOG.infof("Nova publicação salva: %s", gazette.url);
-            LOG.infof("Nova publicação salva: %s", gazette.url);
+        }
+
+        if (!novas.isEmpty()) {
+            notificacaoService.notificarMatches(alerta, novas);
         }
     }
 }
