@@ -2,6 +2,7 @@ package dev.eduardodib.resource.alerta;
 
 
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
+import dev.eduardodib.domain.alertamonitoramento.AlertaResponseDTO;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.service.alerta.AlertaService;
@@ -12,6 +13,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Path("/alertas")
@@ -39,8 +42,9 @@ public class AlertaResource {
             AlertaMonitoramentoEntity alerta = alertaService.criar(
                     usuario, request.palavrasChave(), request.estado(), request.municipio(), request.orgao()
             );
+            AlertaResponseDTO retorno = AlertaResponseDTO.fromEntity(alerta);
 
-            return Response.status(Response.Status.CREATED).entity(alerta).build();
+            return Response.status(Response.Status.CREATED).entity(retorno).build();
 
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao criar alerta", alertasUrl, e);
@@ -59,7 +63,11 @@ public class AlertaResource {
             }
 
             List<AlertaMonitoramentoEntity> alertas = alertaService.listarPorUsuario(usuario);
-            return Response.ok(alertas).build();
+            List<AlertaResponseDTO> retorno = new ArrayList<>();
+            for (AlertaMonitoramentoEntity alerta : alertas) {
+                retorno.add(AlertaResponseDTO.fromEntity(alerta));
+            }
+            return Response.ok(retorno).build();
 
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao listar alertas", alertasUrl, e);
