@@ -6,6 +6,7 @@ import dev.eduardodib.client.api.ApiRequest;
 import dev.eduardodib.client.api.ApiResponse;
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
 import dev.eduardodib.domain.publicacaoencontrada.PublicacaoEncontradaEntity;
+import dev.eduardodib.service.notificacao.NotificacaoService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,9 @@ public class MonitoramentoService {
     @RestClient
     ApiRequest queridoDiarioClient;
 
+    @Inject
+    NotificacaoService notificacaoService;
+
     public ApiResponse buscarPublicacoes(String query, String estado) {
         return queridoDiarioClient.buscar(query, estado, 5);
     }
@@ -29,6 +33,7 @@ public class MonitoramentoService {
     @Transactional
     public void processarAlerta(AlertaMonitoramentoEntity alerta) {
         ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado);
+        LOG.infof("Resposta da API para '%s': %d publicações", alerta.palavrasChave, response != null && response.gazettes != null ? response.gazettes.size() : 0);
 
         if (response == null || response.gazettes == null) return;
 
@@ -48,10 +53,13 @@ public class MonitoramentoService {
             publicacao.territorio = gazette.territorioId;
 
             if (gazette.trechosDestacados != null && !gazette.trechosDestacados.isEmpty()) {
-                publicacao.conteudo = gazette.trechosDestacados.get(0);
+                publicacao.conteudo = gazette.trechosDestacados.getFirst();
             }
 
             publicacao.persist();
+            publicacao.persist();
+            notificacaoService.notificarMatch(publicacao);
+            LOG.infof("Nova publicação salva: %s", gazette.url);
             LOG.infof("Nova publicação salva: %s", gazette.url);
         }
     }
