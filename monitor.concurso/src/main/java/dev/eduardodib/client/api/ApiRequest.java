@@ -13,6 +13,7 @@ public interface ApiRequest {
     ApiResponse buscar(
             @QueryParam("querystring") String query,
             @QueryParam("state") String estado,
-            @QueryParam("size") int size
+            @QueryParam("size") int size,
+            @QueryParam("offset") int offset
     );
 }
