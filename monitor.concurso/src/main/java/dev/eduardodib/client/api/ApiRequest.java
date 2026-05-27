@@ -12,7 +12,7 @@ public interface ApiRequest {
     @GET
     ApiResponse buscar(
             @QueryParam("querystring") String query,
-            @QueryParam("state") String estado,
+            @QueryParam("state_code") String estado,
             @QueryParam("size") int size,
             @QueryParam("offset") int offset,
             @QueryParam("published_since") String publishedSince

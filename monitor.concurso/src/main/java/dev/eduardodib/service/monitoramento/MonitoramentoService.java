@@ -43,7 +43,9 @@ public class MonitoramentoService {
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
         int offset = 0;
         int total = Integer.MAX_VALUE;
-        String publishedSince = alerta.criadoEm.toLocalDate().toString();
+        String publishedSince = alerta.criadoEm != null
+                ? alerta.criadoEm.toLocalDate().toString()
+                : LocalDate.now().minusDays(30).toString();
 
         while (offset < total) {
 
@@ -51,17 +53,28 @@ public class MonitoramentoService {
 
             ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado, offset, publishedSince);
 
+
+
             if (response == null || response.gazettes == null || response.gazettes.isEmpty()) break;
 
             total = response.total;
             LOG.infof("Buscando '%s': offset %d de %d total", alerta.palavrasChave, offset, total);
 
             for (ApiResponse.Gazette gazette : response.gazettes) {
+                if (alerta.estado != null && !alerta.estado.isEmpty()
+                        && !gazette.estado.equalsIgnoreCase(alerta.estado)) {
+                    continue;
+                }
                 boolean jaExiste = PublicacaoEncontradaEntity
                         .count("link = ?1 and alerta = ?2", gazette.url, alerta) > 0;
 
                 if (jaExiste) {
                     LOG.infof("Publicação já registrada: %s", gazette.url);
+                    continue;
+                }
+
+                if (alerta.estado != null && !alerta.estado.isEmpty()
+                        && !gazette.estado.equalsIgnoreCase(alerta.estado)) {
                     continue;
                 }
 
