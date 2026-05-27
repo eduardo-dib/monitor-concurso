@@ -29,13 +29,13 @@ public class MonitoramentoService {
     NotificacaoService notificacaoService;
 
     public ApiResponse buscarPublicacoes(String query, String estado) {
-        return buscarPublicacoes(query, estado, 0);
+        return buscarPublicacoes(query, estado, 0, LocalDate.now().minusDays(30).toString());
     }
 
     private static final int PAGE_SIZE = 20;
 
-    public ApiResponse buscarPublicacoes(String query, String estado, int offset) {
-        return queridoDiarioClient.buscar(query, estado, PAGE_SIZE, offset);
+    private ApiResponse buscarPublicacoes(String query, String estado, int offset, String publishedSince) {
+        return queridoDiarioClient.buscar(query, estado, PAGE_SIZE, offset, publishedSince);
     }
 
     @Transactional
@@ -43,9 +43,13 @@ public class MonitoramentoService {
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
         int offset = 0;
         int total = Integer.MAX_VALUE;
+        String publishedSince = alerta.criadoEm.toLocalDate().toString();
 
         while (offset < total) {
-            ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado, offset);
+
+
+
+            ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado, offset, publishedSince);
 
             if (response == null || response.gazettes == null || response.gazettes.isEmpty()) break;
 

@@ -14,6 +14,7 @@ public interface ApiRequest {
             @QueryParam("querystring") String query,
             @QueryParam("state") String estado,
             @QueryParam("size") int size,
-            @QueryParam("offset") int offset
+            @QueryParam("offset") int offset,
+            @QueryParam("published_since") String publishedSince
     );
 }
