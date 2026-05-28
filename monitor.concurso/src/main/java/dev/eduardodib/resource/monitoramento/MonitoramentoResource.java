@@ -2,6 +2,9 @@ package dev.eduardodib.resource.monitoramento;
 
 
 import dev.eduardodib.client.api.ApiResponse;
+import dev.eduardodib.exception.ErrorException;
+import dev.eduardodib.scraper.DiarioOficialScraper;
+import dev.eduardodib.scraper.parana.DioeParanaScraper;
 import dev.eduardodib.service.monitoramento.MonitoramentoService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -9,12 +12,19 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Path("/monitoramento")
 public class MonitoramentoResource {
 
     @Inject
     MonitoramentoService monitoramentoService;
+
+    @Inject
+    DioeParanaScraper dioeParanaScraper;
 
     @GET
     @Path("/buscar")
@@ -25,4 +35,22 @@ public class MonitoramentoResource {
     ) {
         return monitoramentoService.buscarPublicacoes(query, estado);
     }
+
+    @GET
+    @Path("/buscar-estadual")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadual(
+            @QueryParam("query") String query,
+            @QueryParam("estado") String estado
+    ) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    dioeParanaScraper.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário estadual", "/monitoramento/buscar-estadual", e);
+        }
+    }
+
+
 }
