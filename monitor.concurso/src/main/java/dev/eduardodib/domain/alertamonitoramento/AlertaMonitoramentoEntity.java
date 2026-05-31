@@ -20,6 +20,7 @@ public class AlertaMonitoramentoEntity extends PanacheEntity {
     public String municipio;
     public String orgao;
     public LocalDateTime criadoEm = LocalDateTime.now();
+    public FonteMonitoramento fonte = FonteMonitoramento.TODOS;
     public boolean ativo = true;
 
     public static List<AlertaMonitoramentoEntity> findAtivos() {

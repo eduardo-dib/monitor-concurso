@@ -3,6 +3,7 @@ package dev.eduardodib.resource.alerta;
 
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
 import dev.eduardodib.domain.alertamonitoramento.AlertaResponseDTO;
+import dev.eduardodib.domain.alertamonitoramento.FonteMonitoramento;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.service.alerta.AlertaService;
@@ -26,7 +27,7 @@ public class AlertaResource {
     @Inject
     AlertaService alertaService;
 
-    public record AlertaRequest(String palavrasChave, String estado, String municipio, String orgao) {}
+     record AlertaRequest(String palavrasChave, String estado, String municipio, String orgao, FonteMonitoramento fonte) {}
 
     @POST
     public Response criar(AlertaRequest request, @Context SecurityContext securityContext) {
@@ -40,7 +41,7 @@ public class AlertaResource {
             }
 
             AlertaMonitoramentoEntity alerta = alertaService.criar(
-                    usuario, request.palavrasChave(), request.estado(), request.municipio(), request.orgao()
+                    usuario, request.palavrasChave(), request.estado(), request.municipio(), request.orgao(), request.fonte()
             );
             AlertaResponseDTO retorno = AlertaResponseDTO.fromEntity(alerta);
 
