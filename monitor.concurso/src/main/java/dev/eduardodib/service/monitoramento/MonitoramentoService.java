@@ -47,39 +47,28 @@ public class MonitoramentoService {
     public void processarAlerta(AlertaMonitoramentoEntity alerta) {
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
         int offset = 0;
-        int total = Integer.MAX_VALUE;
         String publishedSince = alerta.criadoEm != null
                 ? alerta.criadoEm.toLocalDate().toString()
                 : LocalDate.now().minusDays(30).toString();
 
-        while (offset < total) {
-
-
-
+        while (true) {
             ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado, offset, publishedSince);
-
-
 
             if (response == null || response.gazettes == null || response.gazettes.isEmpty()) break;
 
-            total = response.total;
-            LOG.infof("Buscando '%s': offset %d de %d total", alerta.palavrasChave, offset, total);
+            LOG.infof("Buscando '%s': offset %d, retornou %d publicações", alerta.palavrasChave, offset, response.gazettes.size());
 
             for (ApiResponse.Gazette gazette : response.gazettes) {
                 if (alerta.estado != null && !alerta.estado.isEmpty()
                         && !gazette.estado.equalsIgnoreCase(alerta.estado)) {
                     continue;
                 }
+
                 boolean jaExiste = PublicacaoEncontradaEntity
                         .count("link = ?1 and alerta = ?2", gazette.url, alerta) > 0;
 
                 if (jaExiste) {
                     LOG.infof("Publicação já registrada: %s", gazette.url);
-                    continue;
-                }
-
-                if (alerta.estado != null && !alerta.estado.isEmpty()
-                        && !gazette.estado.equalsIgnoreCase(alerta.estado)) {
                     continue;
                 }
 
@@ -98,6 +87,8 @@ public class MonitoramentoService {
                 LOG.infof("Nova publicação salva: %s", gazette.url);
             }
 
+            if (response.gazettes.size() < PAGE_SIZE) break;
+
             offset += PAGE_SIZE;
         }
 
@@ -108,9 +99,7 @@ public class MonitoramentoService {
 
     @Transactional
     public void processarAlertaEstadual(AlertaMonitoramentoEntity alerta) {
-        String dataInicio = alerta.criadoEm != null
-                ? alerta.criadoEm.toLocalDate().toString()
-                : LocalDate.now().minusDays(30).toString();
+        String dataInicio = LocalDate.now().minusDays(30).toString();
 
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = dioeParanaScraper.buscar(alerta.palavrasChave, dataInicio);
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();

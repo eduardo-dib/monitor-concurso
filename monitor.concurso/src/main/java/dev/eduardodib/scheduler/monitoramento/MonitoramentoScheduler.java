@@ -20,7 +20,7 @@ public class MonitoramentoScheduler {
     @Inject
     MonitoramentoService monitoramentoService;
 
-    @Scheduled(every = "1h")
+    @Scheduled(every = "30s")
     void executar() {
         LOG.info("Iniciando monitoramento...");
 
@@ -30,7 +30,7 @@ public class MonitoramentoScheduler {
         for (AlertaMonitoramentoEntity alerta : alertas) {
             LOG.infof("Processando alerta: %s | Fonte: %s", alerta.palavrasChave, alerta.fonte);
 
-            String fonte = alerta.fonte != null ? alerta.fonte : "TODOS";
+            FonteMonitoramento fonte = alerta.fonte != null ? alerta.fonte : FonteMonitoramento.TODOS;
             if (fonte.equals(FonteMonitoramento.MUNICIPAL) || fonte.equals(FonteMonitoramento.TODOS)) {
                 monitoramentoService.processarAlerta(alerta);
             }

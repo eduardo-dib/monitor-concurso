@@ -30,5 +30,8 @@ public class ApiResponse {
 
         @JsonProperty("txt_url")
         public String txtUrl;
+
+        @JsonProperty("total_gazettes")
+        public int total;
     }
 }
