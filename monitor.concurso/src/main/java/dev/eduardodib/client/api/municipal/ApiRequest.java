@@ -1,4 +1,4 @@
-package dev.eduardodib.client.api;
+package dev.eduardodib.client.api.municipal;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

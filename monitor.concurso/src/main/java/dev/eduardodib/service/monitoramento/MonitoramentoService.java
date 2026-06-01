@@ -2,8 +2,8 @@ package dev.eduardodib.service.monitoramento;
 
 
 
-import dev.eduardodib.client.api.ApiRequest;
-import dev.eduardodib.client.api.ApiResponse;
+import dev.eduardodib.client.api.municipal.ApiRequest;
+import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
 import dev.eduardodib.domain.publicacaoencontrada.PublicacaoEncontradaEntity;
 import dev.eduardodib.scraper.DiarioOficialScraper;

@@ -1,4 +1,4 @@
-package dev.eduardodib.client.api;
+package dev.eduardodib.client.api.municipal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

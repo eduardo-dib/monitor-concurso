@@ -1,7 +1,8 @@
 package dev.eduardodib.resource.monitoramento;
 
 
-import dev.eduardodib.client.api.ApiResponse;
+import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
+import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
@@ -26,6 +27,9 @@ public class MonitoramentoResource {
     @Inject
     DioeParanaScraper dioeParanaScraper;
 
+    @Inject
+    GoiasApiIntegration goiasApiIntegration;
+
     @GET
     @Path("/buscar")
     @Produces(MediaType.APPLICATION_JSON)
@@ -37,7 +41,7 @@ public class MonitoramentoResource {
     }
 
     @GET
-    @Path("/buscar-estadual")
+    @Path("/buscar-estadual-pr")
     @Produces(MediaType.APPLICATION_JSON)
     public Response buscarEstadual(
             @QueryParam("query") String query,
@@ -49,6 +53,21 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário estadual", "/monitoramento/buscar-estadual", e);
+        }
+    }
+
+    ;
+
+    @GET
+    @Path("/buscar-estadual-go")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualGo(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    goiasApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário estadual GO", "/monitoramento/buscar-estadual-go", e);
         }
     }
 
