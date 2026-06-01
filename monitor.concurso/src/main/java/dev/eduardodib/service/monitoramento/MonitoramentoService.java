@@ -2,6 +2,7 @@ package dev.eduardodib.service.monitoramento;
 
 
 
+import dev.eduardodib.client.api.DiarioOficialClient;
 import dev.eduardodib.client.api.municipal.ApiRequest;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
@@ -30,8 +31,8 @@ public class MonitoramentoService {
     @Inject
     NotificacaoService notificacaoService;
 
-    @Inject
-    DioeParanaScraper dioeParanaScraper;
+    //@Inject
+   // DioeParanaScraper dioeParanaScraper;
 
     public ApiResponse buscarPublicacoes(String query, String estado) {
         return buscarPublicacoes(query, estado, 0, LocalDate.now().minusDays(30).toString());
@@ -98,8 +99,10 @@ public class MonitoramentoService {
     }
 
     @Transactional
+    @Deprecated
+    @SuppressWarnings("não utilizado mais")
     public void processarAlertaEstadual(AlertaMonitoramentoEntity alerta) {
-        String dataInicio = LocalDate.now().minusDays(30).toString();
+     /*    String dataInicio = LocalDate.now().minusDays(30).toString();
 
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = dioeParanaScraper.buscar(alerta.palavrasChave, dataInicio);
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
@@ -129,6 +132,65 @@ public class MonitoramentoService {
             publicacao.persist();
             novas.add(publicacao);
             LOG.infof("Nova publicação estadual salva: %s", scraped.link());
+        }
+
+        if (!novas.isEmpty()) {
+            notificacaoService.notificarMatches(alerta, novas);
+        } */
+    }
+
+    @Transactional
+    public void processarAlertaComScraper(AlertaMonitoramentoEntity alerta, DiarioOficialScraper scraper) {
+        String dataInicio = alerta.criadoEm != null
+                ? alerta.criadoEm.toLocalDate().toString()
+                : LocalDate.now().minusDays(30).toString();
+
+        List<DiarioOficialScraper.PublicacaoScraped> publicacoes = scraper.buscar(alerta.palavrasChave, dataInicio);
+        processarPublicacoesScraped(alerta, publicacoes);
+    }
+
+    @Transactional
+    public void processarAlertaComClient(AlertaMonitoramentoEntity alerta, DiarioOficialClient client) {
+        String dataInicio = alerta.criadoEm != null
+                ? alerta.criadoEm.toLocalDate().toString()
+                : LocalDate.now().minusDays(30).toString();
+
+        List<DiarioOficialScraper.PublicacaoScraped> publicacoes = client.buscar(alerta.palavrasChave, dataInicio);
+        processarPublicacoesScraped(alerta, publicacoes);
+    }
+
+    private void processarPublicacoesScraped(AlertaMonitoramentoEntity alerta, List<DiarioOficialScraper.PublicacaoScraped> publicacoes) {
+        List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
+
+        for (DiarioOficialScraper.PublicacaoScraped scraped : publicacoes) {
+            boolean jaExiste = PublicacaoEncontradaEntity
+                    .count("link = ?1 and alerta = ?2", scraped.link(), alerta) > 0;
+
+            if (jaExiste) {
+                LOG.infof("Publicação já registrada: %s", scraped.link());
+                continue;
+            }
+
+            PublicacaoEncontradaEntity publicacao = new PublicacaoEncontradaEntity();
+            publicacao.alerta = alerta;
+            publicacao.link = scraped.link();
+            publicacao.conteudo = scraped.conteudo();
+            publicacao.territorio = scraped.estado();
+
+            try {
+                publicacao.dataPublicacao = LocalDate.parse(scraped.data());
+            } catch (Exception e) {
+                try {
+                    publicacao.dataPublicacao = LocalDate.parse(scraped.data(),
+                            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                } catch (Exception ex) {
+                    publicacao.dataPublicacao = LocalDate.now();
+                }
+            }
+
+            publicacao.persist();
+            novas.add(publicacao);
+            LOG.infof("Nova publicação salva: %s", scraped.link());
         }
 
         if (!novas.isEmpty()) {
