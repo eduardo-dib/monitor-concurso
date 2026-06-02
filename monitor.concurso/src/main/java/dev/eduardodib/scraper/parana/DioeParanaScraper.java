@@ -121,7 +121,7 @@ public class DioeParanaScraper implements DiarioOficialScraper {
 
                     if (!link.isEmpty()) {
                         String titulo = "Diário Oficial Executivo PR - Edição " + edicao + " - Pág " + pagina;
-                        resultado.add(new PublicacaoScraped(titulo, "", link, data, "PR"));
+                        resultado.add(new PublicacaoScraped(titulo, "", link, data, "PR", edicao, pagina, "DIOE_PR"));
                     }
 
                 } catch (Exception e) {

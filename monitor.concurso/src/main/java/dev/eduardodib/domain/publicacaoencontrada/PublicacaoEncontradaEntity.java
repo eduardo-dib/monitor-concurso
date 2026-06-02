@@ -21,6 +21,9 @@ public class PublicacaoEncontradaEntity extends PanacheEntity {
     public String link;
     public String territorio;
 
+    public String edicao;
+    public String pagina;
+
     public static List<PublicacaoEncontradaEntity> findByAlerta(AlertaMonitoramentoEntity alerta) {
         return list("alerta", alerta);
     }

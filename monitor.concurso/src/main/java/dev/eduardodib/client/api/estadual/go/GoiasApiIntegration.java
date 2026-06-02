@@ -34,6 +34,7 @@ public class GoiasApiIntegration implements DiarioOficialClient {
         String dataFim = LocalDate.now().toString();
 
         try {
+            LOG.infof("[GOIAS] Buscando termo='%s', dataInicio='%s', dataFim='%s'", palavrasChave, dataInicio, dataFim);
             while (true) {
                 GoiasApiResponse response = goiasApiRequest.buscar(
                         palavrasChave, dataInicio, dataFim, pagina, PAGE_SIZE
@@ -52,7 +53,10 @@ public class GoiasApiIntegration implements DiarioOficialClient {
                             conteudo,
                             link,
                             r.data,
-                            "GO"
+                            "GO",
+                            String.valueOf(r.edicaoNumero),
+                            String.valueOf(r.pagina),
+                            "GOIAS_API"
                     ));
                 }
 

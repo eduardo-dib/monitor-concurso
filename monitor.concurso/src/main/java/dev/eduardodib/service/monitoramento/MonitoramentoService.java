@@ -151,9 +151,7 @@ public class MonitoramentoService {
 
     @Transactional
     public void processarAlertaComClient(AlertaMonitoramentoEntity alerta, DiarioOficialClient client) {
-        String dataInicio = alerta.criadoEm != null
-                ? alerta.criadoEm.toLocalDate().toString()
-                : LocalDate.now().minusDays(30).toString();
+        String dataInicio =  LocalDate.now().minusDays(30).toString();
 
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = client.buscar(alerta.palavrasChave, dataInicio);
         processarPublicacoesScraped(alerta, publicacoes);
@@ -176,7 +174,8 @@ public class MonitoramentoService {
             publicacao.link = scraped.link();
             publicacao.conteudo = scraped.conteudo();
             publicacao.territorio = scraped.estado();
-
+            publicacao.edicao = scraped.edicao();
+            publicacao.pagina = scraped.pagina();
             try {
                 publicacao.dataPublicacao = LocalDate.parse(scraped.data());
             } catch (Exception e) {

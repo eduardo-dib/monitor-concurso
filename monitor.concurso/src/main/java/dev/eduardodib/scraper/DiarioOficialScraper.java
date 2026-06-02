@@ -13,6 +13,9 @@ public interface DiarioOficialScraper {
             String conteudo,
             String link,
             String data,
-            String estado
+            String estado,
+            String edicao,
+            String pagina,
+            String fonte
     ) {}
 }

@@ -30,11 +30,26 @@ public class NotificacaoService {
         corpo.append("<h2>Olá, ").append(nome).append("!</h2>");
         corpo.append("<p>Encontramos <strong>").append(publicacoes.size()).append(" nova(s) publicação(ões)</strong> para o seu alerta <strong>").append(palavrasChave).append("</strong>.</p>");
         corpo.append("<hr/>");
-
         for (PublicacaoEncontradaEntity pub : publicacoes) {
             corpo.append("<p><strong>Data:</strong> ").append(pub.dataPublicacao).append("</p>");
             corpo.append("<p><strong>Território:</strong> ").append(pub.territorio).append("</p>");
-            corpo.append("<p><a href='").append(pub.link).append("'>Ver publicação</a></p>");
+
+            if (pub.edicao != null && !pub.edicao.isEmpty()) {
+                corpo.append("<p><strong>Edição:</strong> ").append(pub.edicao).append("</p>");
+            }
+
+            if (pub.pagina != null && !pub.pagina.isEmpty()) {
+                corpo.append("<p><strong>Página:</strong> ").append(pub.pagina).append("</p>");
+            }
+
+            if (pub.conteudo != null && !pub.conteudo.isEmpty()) {
+                corpo.append("<p><strong>Trecho:</strong> <em>").append(pub.conteudo).append("</em></p>");
+            }
+
+            if (pub.link != null && !pub.link.isEmpty()) {
+                corpo.append("<p><a href='").append(pub.link).append("'>Ver publicação</a></p>");
+            }
+
             corpo.append("<hr/>");
         }
 

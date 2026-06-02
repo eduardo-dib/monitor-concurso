@@ -29,7 +29,7 @@ public class MonitoramentoScheduler {
     @Inject
     Instance<DiarioOficialClient> clients;
 
-    @@Scheduled(every = "30s")
+    @Scheduled(every = "30s")
     void executar() {
         LOG.info("Iniciando monitoramento...");
 
@@ -38,6 +38,8 @@ public class MonitoramentoScheduler {
 
         for (AlertaMonitoramentoEntity alerta : alertas) {
             LOG.infof("Processando alerta: %s | Fonte: %s | Estado: %s", alerta.palavrasChave, alerta.fonte, alerta.estado);
+            LOG.infof("Fonte do alerta: %s | Estado: %s", alerta.fonte, alerta.estado);
+            LOG.infof("Scrapers disponíveis: %d | Clients disponíveis: %d", scrapers.stream().count(), clients.stream().count());
 
             FonteMonitoramento fonte = alerta.fonte != null ? alerta.fonte : FonteMonitoramento.TODOS;
 
@@ -48,6 +50,7 @@ public class MonitoramentoScheduler {
             if (fonte == FonteMonitoramento.ESTADUAL || fonte == FonteMonitoramento.TODOS) {
                 // Scrapers
                 for (DiarioOficialScraper scraper : scrapers) {
+                    LOG.infof("Scraper disponível: %s | Alerta estado: %s", scraper.getEstado(), alerta.estado);
                     if (scraper.getEstado().equalsIgnoreCase(alerta.estado)) {
                         monitoramentoService.processarAlertaComScraper(alerta, scraper);
                     }
