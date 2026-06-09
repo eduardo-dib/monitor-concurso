@@ -1,6 +1,7 @@
 package dev.eduardodib.resource.monitoramento;
 
 
+import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
@@ -29,6 +30,9 @@ public class MonitoramentoResource {
 
     @Inject
     GoiasApiIntegration goiasApiIntegration;
+
+    @Inject
+    DistritoFederalApiIntegration distritoFederalApiIntegration;
 
     @GET
     @Path("/buscar")
@@ -68,6 +72,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário estadual GO", "/monitoramento/buscar-estadual-go", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-df")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualDf(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    distritoFederalApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do DF", "/monitoramento/buscar-estadual-df", e);
         }
     }
 
