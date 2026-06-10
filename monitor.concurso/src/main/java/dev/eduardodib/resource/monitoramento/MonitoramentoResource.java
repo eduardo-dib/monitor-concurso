@@ -2,6 +2,7 @@ package dev.eduardodib.resource.monitoramento;
 
 
 import dev.eduardodib.client.api.estadual.al.AlagoasApiIntegration;
+import dev.eduardodib.client.api.estadual.ba.BahiaApiIntegration;
 import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
@@ -37,6 +38,10 @@ public class MonitoramentoResource {
 
     @Inject
     AlagoasApiIntegration alagoasApiIntegration;
+
+    @Inject
+    BahiaApiIntegration bahiaApiIntegration;
+
 
     @GET
     @Path("/buscar")
@@ -104,6 +109,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário de AL", "/monitoramento/buscar-estadual-al", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-ba")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualBa(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    bahiaApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário da BA", "/monitoramento/buscar-estadual-ba", e);
         }
     }
 
