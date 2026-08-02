@@ -3,6 +3,7 @@ package dev.eduardodib.resource.monitoramento;
 
 import dev.eduardodib.client.api.estadual.al.AlagoasApiIntegration;
 import dev.eduardodib.client.api.estadual.ba.BahiaApiIntegration;
+import dev.eduardodib.client.api.estadual.ce.CearaApiIntegration;
 import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
@@ -43,8 +44,9 @@ public class MonitoramentoResource {
     @Inject
     BahiaApiIntegration bahiaApiIntegration;
 
+
     @Inject
-    CearaScraper cearaScraper;
+    CearaApiIntegration cearaApiIntegration;
 
 
     @GET
@@ -135,7 +137,7 @@ public class MonitoramentoResource {
     public Response buscarEstadualCe(@QueryParam("query") String query) {
         try {
             List<DiarioOficialScraper.PublicacaoScraped> resultado =
-                    cearaScraper.buscar(query, LocalDate.now().minusDays(30).toString());
+                    cearaApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do CE", "/monitoramento/buscar-estadual-ce", e);
