@@ -6,6 +6,7 @@ import dev.eduardodib.client.api.estadual.ba.BahiaApiIntegration;
 import dev.eduardodib.client.api.estadual.ce.CearaApiIntegration;
 import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
+import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
@@ -19,6 +20,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jose4j.jwt.consumer.ErrorCodeValidator;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -47,6 +49,9 @@ public class MonitoramentoResource {
 
     @Inject
     CearaApiIntegration cearaApiIntegration;
+
+    @Inject
+    MaranhaoApiIntegration maranhaoApiIntegration;
 
 
     @GET
@@ -141,6 +146,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do CE", "/monitoramento/buscar-estadual-ce", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-ma")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualMa(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    maranhaoApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do MA", "/monitoramento/buscar-estadual-ma", e);
         }
     }
 
