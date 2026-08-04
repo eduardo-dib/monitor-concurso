@@ -40,7 +40,7 @@ jobs:
       - name: Build e Push da Imagem Docker
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./monitor.concurso
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/monitor-concurso-api:latest
 
