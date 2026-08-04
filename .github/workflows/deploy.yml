@@ -24,7 +24,7 @@ jobs:
 
       # 3. Compila a aplicação Quarkus e gera o .jar na pasta target/
       - name: Compilar Projeto com Maven
-        working-directory: ./monitor.concurso/src/main/docker/Dockerfile.jvm  
+        working-directory: ./monitor.concurso
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests
@@ -40,7 +40,7 @@ jobs:
       - name: Build e Push da Imagem Docker
         uses: docker/build-push-action@v5
         with:
-          context: ./monitor.concurso
+          context: ./monitor.concurso/src/main/docker/Dockerfile.jvm
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/monitor-concurso-api:latest
 
