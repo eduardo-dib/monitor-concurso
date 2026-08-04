@@ -24,6 +24,7 @@ jobs:
 
       # 3. Compila a aplicação Quarkus e gera o .jar na pasta target/
       - name: Compilar Projeto com Maven
+        working-directory: ./monitor.concurso  # <-- Altere para o nome da sua pasta
         run: ./mvnw clean package -DskipTests
 
       # 4. Faz login no Docker Hub usando as credenciais do GitHub Secrets
