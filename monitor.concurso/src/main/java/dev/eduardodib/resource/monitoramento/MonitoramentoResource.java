@@ -7,6 +7,7 @@ import dev.eduardodib.client.api.estadual.ce.CearaApiIntegration;
 import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
+import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
@@ -52,6 +53,9 @@ public class MonitoramentoResource {
 
     @Inject
     MaranhaoApiIntegration maranhaoApiIntegration;
+
+    @Inject
+    PiauiApiIntegration piauiApiIntegration;
 
 
     @GET
@@ -159,6 +163,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do MA", "/monitoramento/buscar-estadual-ma", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-pi")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualPi(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    piauiApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do PI", "/monitoramento/buscar-estadual-pi", e);
         }
     }
 
