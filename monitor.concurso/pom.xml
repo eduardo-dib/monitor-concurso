@@ -124,6 +124,11 @@
             <version>1.6.3</version>
             <scope>test</scope>
         </dependency>
+        <!-- flyway para migrações -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-flyway</artifactId>
+        </dependency>
     </dependencies>
 
 
