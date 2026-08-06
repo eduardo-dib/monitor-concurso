@@ -8,6 +8,7 @@ import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
 import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
+import dev.eduardodib.client.api.estadual.rn.RioGrandeNorteApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
@@ -56,6 +57,9 @@ public class MonitoramentoResource {
 
     @Inject
     PiauiApiIntegration piauiApiIntegration;
+
+    @Inject
+    RioGrandeNorteApiIntegration rioGrandeNorteApiIntegration;
 
 
     @GET
@@ -176,6 +180,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do PI", "/monitoramento/buscar-estadual-pi", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-rn")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualRn(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    rioGrandeNorteApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário de RN", "/monitoramento/buscar-estadual-rn", e);
         }
     }
 
