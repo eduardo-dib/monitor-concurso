@@ -14,6 +14,7 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class MonitoramentoScheduler {
@@ -29,7 +30,7 @@ public class MonitoramentoScheduler {
     @Inject
     Instance<DiarioOficialClient> clients;
 
-    @Scheduled(every = "30s")
+    @Scheduled(every = "{monitoramento.intervalo-busca}")
     void executar() {
         LOG.info("Iniciando monitoramento...");
 

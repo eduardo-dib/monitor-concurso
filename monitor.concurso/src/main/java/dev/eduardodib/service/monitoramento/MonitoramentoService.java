@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class MonitoramentoService {
@@ -33,6 +34,16 @@ public class MonitoramentoService {
 
     //@Inject
    // DioeParanaScraper dioeParanaScraper;
+
+    @ConfigProperty(name = "monitoramento.busca-desde-criacao-alerta")
+    boolean buscaDesdeCriacaoAlerta;
+
+    private String calcularDataInicio(AlertaMonitoramentoEntity alerta) {
+        if (buscaDesdeCriacaoAlerta && alerta.criadoEm != null) {
+            return alerta.criadoEm.toLocalDate().toString();
+        }
+        return LocalDate.now().minusDays(30).toString();
+    }
 
     public ApiResponse buscarPublicacoes(String query, String estado) {
         return buscarPublicacoes(query, estado, 0, LocalDate.now().minusDays(30).toString());
@@ -141,16 +152,14 @@ public class MonitoramentoService {
 
     @Transactional
     public void processarAlertaComScraper(AlertaMonitoramentoEntity alerta, DiarioOficialScraper scraper) {
-        String dataInicio = LocalDate.now().minusDays(30).toString();
-
+        String dataInicio = calcularDataInicio(alerta);
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = scraper.buscar(alerta.palavrasChave, dataInicio);
         processarPublicacoesScraped(alerta, publicacoes);
     }
 
     @Transactional
     public void processarAlertaComClient(AlertaMonitoramentoEntity alerta, DiarioOficialClient client) {
-        String dataInicio =  LocalDate.now().minusDays(30).toString();
-
+        String dataInicio = calcularDataInicio(alerta);
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = client.buscar(alerta.palavrasChave, dataInicio);
         processarPublicacoesScraped(alerta, publicacoes);
     }
