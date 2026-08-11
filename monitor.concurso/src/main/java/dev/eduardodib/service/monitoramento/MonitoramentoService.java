@@ -141,9 +141,7 @@ public class MonitoramentoService {
 
     @Transactional
     public void processarAlertaComScraper(AlertaMonitoramentoEntity alerta, DiarioOficialScraper scraper) {
-        String dataInicio = alerta.criadoEm != null
-                ? alerta.criadoEm.toLocalDate().toString()
-                : LocalDate.now().minusDays(30).toString();
+        String dataInicio = LocalDate.now().minusDays(30).toString();
 
         List<DiarioOficialScraper.PublicacaoScraped> publicacoes = scraper.buscar(alerta.palavrasChave, dataInicio);
         processarPublicacoesScraped(alerta, publicacoes);

@@ -14,6 +14,7 @@ import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import dev.eduardodib.scraper.ce.CearaScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
+import dev.eduardodib.scraper.to.TocantinsScraper;
 import dev.eduardodib.service.monitoramento.MonitoramentoService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -60,6 +61,9 @@ public class MonitoramentoResource {
 
     @Inject
     RioGrandeNorteApiIntegration rioGrandeNorteApiIntegration;
+
+    @Inject
+    TocantinsScraper tocantinsScraper;
 
 
     @GET
@@ -193,6 +197,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário de RN", "/monitoramento/buscar-estadual-rn", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-to")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualTo(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    tocantinsScraper.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário de TO", "/monitoramento/buscar-estadual-to", e);
         }
     }
 
