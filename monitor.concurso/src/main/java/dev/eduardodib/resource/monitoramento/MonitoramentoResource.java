@@ -5,6 +5,7 @@ import dev.eduardodib.client.api.estadual.al.AlagoasApiIntegration;
 import dev.eduardodib.client.api.estadual.ba.BahiaApiIntegration;
 import dev.eduardodib.client.api.estadual.ce.CearaApiIntegration;
 import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
+import dev.eduardodib.client.api.estadual.es.EspiritoSantoApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
 import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
@@ -64,6 +65,9 @@ public class MonitoramentoResource {
 
     @Inject
     TocantinsScraper tocantinsScraper;
+
+    @Inject
+    EspiritoSantoApiIntegration espiritoSantoApiIntegration;
 
 
     @GET
@@ -210,6 +214,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário de TO", "/monitoramento/buscar-estadual-to", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-es")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualEs(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    espiritoSantoApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do ES", "/monitoramento/buscar-estadual-es", e);
         }
     }
 
