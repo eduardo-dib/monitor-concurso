@@ -7,9 +7,12 @@ import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.service.token.TokenService;
 import dev.eduardodib.service.usuario.UsuarioService;
 import dev.eduardodib.exception.ErrorException;
+import io.quarkus.elytron.security.common.BcryptUtil;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
 
@@ -44,19 +47,45 @@ public class UsuarioResource {
         }
     }
 
+    @ConfigProperty(name = "app.jwt.cookie.secure")
+    boolean cookieSecure;
+
     @POST
     @Path("/login")
     public Response login(LoginRequest request) {
-
-        String usuarioLoginUrl = "/usuarios/login";
         UsuarioEntity usuario = UsuarioEntity.findByEmail(request.email());
-
-        if (usuario == null || !usuarioService.verificarSenha(request.senha(), usuario.senhaHash)) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity("E-mail ou senha inválidos")
-                    .build();
+        if (usuario == null || !BcryptUtil.matches(request.senha(), usuario.senhaHash)) {
+            return ErrorException.unauthorized("Credenciais inválidas", "/usuarios/login");
         }
 
-        return Response.ok(new LoginResponseDTO(tokenService.gerarToken(usuario))).build();
+        String token = tokenService.gerarToken(usuario);
+
+        NewCookie cookie = new NewCookie.Builder("token")
+                .value(token)
+                .path("/")
+                .maxAge(8 * 60 * 60)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(NewCookie.SameSite.LAX)
+                .build();
+
+        return Response.ok(new LoginSucesso(usuario.nome)).cookie(cookie).build();
+    }
+
+    public record LoginSucesso(String nome) {}
+
+    @POST
+    @Path("/logout")
+    public Response logout() {
+        NewCookie cookie = new NewCookie.Builder("token")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(NewCookie.SameSite.LAX)
+                .build();
+
+        return Response.ok().cookie(cookie).build();
     }
 }
