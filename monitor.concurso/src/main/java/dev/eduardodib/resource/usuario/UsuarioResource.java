@@ -8,13 +8,11 @@ import dev.eduardodib.service.token.TokenService;
 import dev.eduardodib.service.usuario.UsuarioService;
 import dev.eduardodib.exception.ErrorException;
 import io.quarkus.elytron.security.common.BcryptUtil;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.NewCookie;
-import jakarta.ws.rs.core.Response;
-
 
 
 @Path("/usuarios")
@@ -87,5 +85,19 @@ public class UsuarioResource {
                 .build();
 
         return Response.ok().cookie(cookie).build();
+    }
+
+    @GET
+    @Path("/me")
+    @Authenticated
+    public Response me(@Context SecurityContext securityContext) {
+        String email = securityContext.getUserPrincipal().getName();
+        UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
+
+        if (usuario == null) {
+            return ErrorException.unauthorized("Usuário não encontrado", "/usuarios/me");
+        }
+
+        return Response.ok(CadastroUsuarioResponseDTO.fromEntity(usuario)).build();
     }
 }

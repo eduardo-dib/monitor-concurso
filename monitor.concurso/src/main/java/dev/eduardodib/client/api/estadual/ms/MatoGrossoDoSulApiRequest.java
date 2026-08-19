@@ -1,4 +1,4 @@
-package dev.eduardodib.client.api.estadual.mg;
+package dev.eduardodib.client.api.estadual.ms;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

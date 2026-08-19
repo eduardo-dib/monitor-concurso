@@ -1,6 +1,5 @@
-package dev.eduardodib.client.api.estadual.mg;
+package dev.eduardodib.client.api.estadual.ms;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MatoGrossoDoSulApiResponse {

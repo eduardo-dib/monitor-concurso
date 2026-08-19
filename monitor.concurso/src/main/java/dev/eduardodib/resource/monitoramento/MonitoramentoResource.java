@@ -8,6 +8,7 @@ import dev.eduardodib.client.api.estadual.df.DistritoFederalApiIntegration;
 import dev.eduardodib.client.api.estadual.es.EspiritoSantoApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
+import dev.eduardodib.client.api.estadual.mg.MinasGeraisApiIntegration;
 import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
 import dev.eduardodib.client.api.estadual.rn.RioGrandeNorteApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
@@ -68,6 +69,9 @@ public class MonitoramentoResource {
 
     @Inject
     EspiritoSantoApiIntegration espiritoSantoApiIntegration;
+
+    @Inject
+    MinasGeraisApiIntegration minasGeraisApiIntegration;
 
 
     @GET
@@ -227,6 +231,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do ES", "/monitoramento/buscar-estadual-es", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-mg")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualMg(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    minasGeraisApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do MG", "/monitoramento/buscar-estadual-mg", e);
         }
     }
 

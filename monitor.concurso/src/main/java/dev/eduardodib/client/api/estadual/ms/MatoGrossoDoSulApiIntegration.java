@@ -1,4 +1,4 @@
-package dev.eduardodib.client.api.estadual.mg;
+package dev.eduardodib.client.api.estadual.ms;
 
 import dev.eduardodib.client.api.DiarioOficialClient;
 import dev.eduardodib.scraper.DiarioOficialScraper;
@@ -9,7 +9,6 @@ import org.jboss.logging.Logger;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
