@@ -4,6 +4,8 @@ export interface CadastroResponse {
   email: string
 }
 
-export interface LoginResponse {
-  nome: string
+export interface ApiErrorResponse {
+  status: number
+  mensagem: string
+  endpoint: string
 }
