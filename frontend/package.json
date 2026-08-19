@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:homolog": "vue-tsc --build && vite build --mode homolog",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "axios": "^1.19.0",
     "pinia": "^4.0.2",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.40",
