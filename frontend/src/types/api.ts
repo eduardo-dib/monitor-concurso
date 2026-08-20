@@ -9,3 +9,7 @@ export interface ApiErrorResponse {
   mensagem: string
   endpoint: string
 }
+
+export interface LoginResponse {
+  nome: string
+}
