@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,10 @@ public class MinasGeraisApiIntegration implements DiarioOficialClient {
     @RestClient
     MinasGeraisApiRequest apiRequest;
 
+    @Inject
+    @RestClient
+    MinasGeraisAutenticacaoRequest autenticacaoRequest;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -36,12 +41,19 @@ public class MinasGeraisApiIntegration implements DiarioOficialClient {
     @Override
     public List<PublicacaoScraped> buscar(String palavrasChave, String dataInicio) {
         List<PublicacaoScraped> publicacoes = new ArrayList<>();
+
+        String authorization = autenticar();
+        if (authorization == null) {
+            return publicacoes;
+        }
+
         int pagina = 1;
         String dataFim = LocalDate.now().toString();
 
         try {
             while (true) {
                 MinasGeraisApiResponse resposta = apiRequest.buscar(
+                        authorization,
                         dataInicio, dataFim, palavrasChave,
                         true, false, false, false,
                         pagina, PAGE_SIZE
@@ -68,6 +80,27 @@ public class MinasGeraisApiIntegration implements DiarioOficialClient {
         return publicacoes;
     }
 
+    private String autenticar() {
+        try {
+            MinasGeraisAutenticacaoResponse resposta = autenticacaoRequest.autenticar(Collections.emptyMap());
+
+            if (resposta == null || resposta.dados == null || resposta.dados.isBlank()) {
+                LOG.warn("MG: autenticação não retornou token");
+                return null;
+            }
+
+            if (resposta.erros != null && !resposta.erros.isEmpty()) {
+                LOG.warnf("MG: autenticação retornou erros: %s", resposta.erros);
+                return null;
+            }
+
+            return "Bearer " + resposta.dados;
+        } catch (Exception e) {
+            LOG.errorf(e, "Erro ao autenticar no MG");
+            return null;
+        }
+    }
+
     private PublicacaoScraped montarPublicacao(MinasGeraisApiResponse.Resultado resultado, String termo) {
         return new PublicacaoScraped(
                 "Diário Oficial de Minas Gerais - " + resultado.tipoCaderno,
@@ -77,7 +110,7 @@ public class MinasGeraisApiIntegration implements DiarioOficialClient {
                 "MG",
                 String.valueOf(resultado.idJornal),
                 String.valueOf(resultado.pagina),
-                "MINASGERAIS_API"
+                "Diário Oficial de Minas Gerais"
         );
     }
 

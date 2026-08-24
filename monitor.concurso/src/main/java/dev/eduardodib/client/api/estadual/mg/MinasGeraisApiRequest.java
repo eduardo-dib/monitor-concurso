@@ -1,6 +1,7 @@
 package dev.eduardodib.client.api.estadual.mg;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -15,6 +16,7 @@ public interface MinasGeraisApiRequest {
     @Path("/PesquisarJornaisPaginados")
     @Produces(MediaType.APPLICATION_JSON)
     MinasGeraisApiResponse buscar(
+            @HeaderParam("Authorization") String authorization,
             @QueryParam("DataPublicacaoInicial") String dataInicial,
             @QueryParam("DataPublicacaoFinal") String dataFinal,
             @QueryParam("TextoPesquisa") String textoPesquisa,
