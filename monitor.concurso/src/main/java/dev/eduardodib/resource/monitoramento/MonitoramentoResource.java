@@ -16,6 +16,7 @@ import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import dev.eduardodib.scraper.ce.CearaScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
+import dev.eduardodib.scraper.rj.RioDeJaneiroScraper;
 import dev.eduardodib.scraper.to.TocantinsScraper;
 import dev.eduardodib.service.monitoramento.MonitoramentoService;
 import jakarta.inject.Inject;
@@ -72,6 +73,9 @@ public class MonitoramentoResource {
 
     @Inject
     MinasGeraisApiIntegration minasGeraisApiIntegration;
+
+    @Inject
+    RioDeJaneiroScraper rioDeJaneiroScraper;
 
 
     @GET
@@ -244,6 +248,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do MG", "/monitoramento/buscar-estadual-mg", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-rj")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualRj(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    rioDeJaneiroScraper.buscar(query, LocalDate.now().minusDays(3).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do RJ", "/monitoramento/buscar-estadual-rj", e);
         }
     }
 
