@@ -29,6 +29,8 @@ public class UsuarioResource {
 
     public record CadastroRequest(String nome, String email, String senha) {}
     public record LoginRequest(String email, String senha) {}
+    public record SolicitarRecuperacaoRequest(String email) {}
+    public record RedefinirSenhaRequest(String token, String novaSenha) {}
 
     @POST
     @Path("/cadastrar")
@@ -99,5 +101,23 @@ public class UsuarioResource {
         }
 
         return Response.ok(CadastroUsuarioResponseDTO.fromEntity(usuario)).build();
+    }
+
+    @POST
+    @Path("/esqueci-senha")
+    public Response esqueciSenha(SolicitarRecuperacaoRequest request) {
+        usuarioService.solicitarRecuperacaoSenha(request.email());
+        return Response.ok().entity("Se o e-mail existir, um link de recuperação foi enviado.").build();
+    }
+
+    @POST
+    @Path("/redefinir-senha")
+    public Response redefinirSenha(RedefinirSenhaRequest request) {
+        try {
+            usuarioService.redefinirSenha(request.token(), request.novaSenha());
+            return Response.ok().entity("Senha redefinida com sucesso.").build();
+        } catch (IllegalArgumentException e) {
+            return ErrorException.badRequest(e.getMessage(), "/usuarios/redefinir-senha");
+        }
     }
 }
