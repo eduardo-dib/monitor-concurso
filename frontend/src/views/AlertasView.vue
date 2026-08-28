@@ -59,9 +59,15 @@ onMounted(carregarAlertas)
         <h1 class="text-2xl font-bold text-primary">Bem-vindo, {{ auth.nome }}!</h1>
         <p class="text-gray-500 text-sm mt-1">Seus alertas de concursos</p>
       </div>
-      <button @click="handleLogout" class="text-sm text-accent hover:underline shrink-0">
-        Sair
-      </button>
+      <div class="flex items-center gap-4 shrink-0">
+        <RouterLink
+          to="/alertas/novo"
+          class="bg-accent text-white text-sm font-medium px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
+        >
+          Novo alerta
+        </RouterLink>
+        <button @click="handleLogout" class="text-sm text-accent hover:underline">Sair</button>
+      </div>
     </div>
 
     <p v-if="erro" class="text-sm text-red-600 mb-4">{{ erro }}</p>

@@ -33,6 +33,12 @@ const router = createRouter({
       component: () => import('@/views/AlertasView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/alertas/novo',
+      name: 'criar-alerta',
+      component: () => import('@/views/CriarAlertaView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

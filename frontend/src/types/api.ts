@@ -1,3 +1,5 @@
+export type FonteMonitoramento = 'MUNICIPAL' | 'ESTADUAL' | 'FEDERAL' | 'TODOS'
+
 export interface UsuarioResponse {
   id: number
   nome: string
@@ -23,6 +25,16 @@ export interface AlertaResponse {
   ativo: boolean
   usuarioNome: string
   usuarioEmail: string
+}
+
+
+
+export interface CriarAlertaPayload {
+  palavrasChave: string
+  estado: string
+  municipio: string
+  orgao: string
+  fonte: FonteMonitoramento
 }
 
 
