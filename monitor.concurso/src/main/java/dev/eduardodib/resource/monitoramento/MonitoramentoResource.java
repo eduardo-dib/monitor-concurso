@@ -11,6 +11,7 @@ import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
 import dev.eduardodib.client.api.estadual.mg.MinasGeraisApiIntegration;
 import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
 import dev.eduardodib.client.api.estadual.rn.RioGrandeNorteApiIntegration;
+import dev.eduardodib.client.api.estadual.sp.SaoPauloApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
@@ -76,6 +77,9 @@ public class MonitoramentoResource {
 
     @Inject
     RioDeJaneiroScraper rioDeJaneiroScraper;
+
+    @Inject
+    SaoPauloApiIntegration saoPauloApiIntegration;
 
 
     @GET
@@ -261,6 +265,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do RJ", "/monitoramento/buscar-estadual-rj", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-sp")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualSp(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    saoPauloApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário de SP", "/monitoramento/buscar-estadual-sp", e);
         }
     }
 
