@@ -21,6 +21,8 @@ public class MonitoramentoScheduler {
 
     private static final Logger LOG = Logger.getLogger(MonitoramentoScheduler.class);
 
+    private volatile boolean queridoDiarioFalhando = false;
+
     @Inject
     MonitoramentoService monitoramentoService;
 
@@ -30,42 +32,49 @@ public class MonitoramentoScheduler {
     @Inject
     Instance<DiarioOficialClient> clients;
 
+
     @Scheduled(every = "{monitoramento.intervalo-busca}")
     void executar() {
-        LOG.info("Iniciando monitoramento...");
-
         List<AlertaMonitoramentoEntity> alertas = AlertaMonitoramentoEntity.findAtivos();
-        LOG.infof("Encontrados %d alertas ativos", alertas.size());
 
         for (AlertaMonitoramentoEntity alerta : alertas) {
-            LOG.infof("Processando alerta: %s | Fonte: %s | Estado: %s", alerta.palavrasChave, alerta.fonte, alerta.estado);
-            LOG.infof("Fonte do alerta: %s | Estado: %s", alerta.fonte, alerta.estado);
-            LOG.infof("Scrapers disponíveis: %d | Clients disponíveis: %d", scrapers.stream().count(), clients.stream().count());
-
             FonteMonitoramento fonte = alerta.fonte != null ? alerta.fonte : FonteMonitoramento.TODOS;
 
             if (fonte == FonteMonitoramento.MUNICIPAL || fonte == FonteMonitoramento.TODOS) {
-                monitoramentoService.processarAlerta(alerta);
+                try {
+                    monitoramentoService.processarAlerta(alerta); // Querido Diário
+                    if (queridoDiarioFalhando) {
+                        LOG.info("Querido Diário voltou a responder normalmente");
+                        queridoDiarioFalhando = false;
+                    }
+                } catch (Exception e) {
+                    if (!queridoDiarioFalhando) {
+                        LOG.errorf(e, "Erro ao processar alerta %d via Querido Diário (municipal) — suprimindo logs repetidos até normalizar", alerta.id);
+                        queridoDiarioFalhando = true;
+                    }
+                }
             }
 
             if (fonte == FonteMonitoramento.ESTADUAL || fonte == FonteMonitoramento.TODOS) {
-                // Scrapers
                 for (DiarioOficialScraper scraper : scrapers) {
-                    LOG.infof("Scraper disponível: %s | Alerta estado: %s", scraper.getEstado(), alerta.estado);
                     if (scraper.getEstado().equalsIgnoreCase(alerta.estado)) {
-                        monitoramentoService.processarAlertaComScraper(alerta, scraper);
+                        try {
+                            monitoramentoService.processarAlertaComScraper(alerta, scraper);
+                        } catch (Exception e) {
+                            LOG.errorf(e, "Erro ao processar alerta %d via scraper %s", alerta.id, scraper.getEstado());
+                        }
                     }
                 }
-
-                // Clients (APIs)
                 for (DiarioOficialClient client : clients) {
                     if (client.getEstado().equalsIgnoreCase(alerta.estado)) {
-                        monitoramentoService.processarAlertaComClient(alerta, client);
+                        try {
+                            monitoramentoService.processarAlertaComClient(alerta, client);
+                        } catch (Exception e) {
+                            LOG.errorf(e, "Erro ao processar alerta %d via client %s", alerta.id, client.getEstado());
+                        }
                     }
                 }
             }
         }
-
-        LOG.info("Monitoramento concluído.");
     }
 }
