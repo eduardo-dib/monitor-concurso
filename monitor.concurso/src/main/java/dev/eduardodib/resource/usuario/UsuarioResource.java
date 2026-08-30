@@ -4,15 +4,20 @@ package dev.eduardodib.resource.usuario;
 import dev.eduardodib.domain.usuario.CadastroUsuarioResponseDTO;
 import dev.eduardodib.domain.usuario.LoginResponseDTO;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
+import dev.eduardodib.service.ratelimit.RateLimiterService;
 import dev.eduardodib.service.token.TokenService;
 import dev.eduardodib.service.usuario.UsuarioService;
 import dev.eduardodib.exception.ErrorException;
+import dev.eduardodib.util.IpUtil;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.security.Authenticated;
+import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.*;
+
+import java.time.Duration;
 
 
 @Path("/usuarios")
@@ -25,6 +30,12 @@ public class UsuarioResource {
 
     @Inject
     TokenService tokenService;
+
+    @Inject
+    RateLimiterService rateLimiterService;
+
+    @Context
+    HttpServerRequest httpRequest;
 
 
     public record CadastroRequest(String nome, String email, String senha) {}
@@ -106,6 +117,18 @@ public class UsuarioResource {
     @POST
     @Path("/esqueci-senha")
     public Response esqueciSenha(SolicitarRecuperacaoRequest request) {
+        String ip = IpUtil.extrair(httpRequest);
+
+        if (!rateLimiterService.permitir("esqueci-senha:ip:" + ip, 10, Duration.ofHours(1))) {
+            return ErrorException.tooManyRequests("Muitas tentativas. Tente novamente mais tarde.", "/usuarios/esqueci-senha");
+        }
+
+        String chaveEmail = "esqueci-senha:email:" + request.email().toLowerCase();
+        if (!rateLimiterService.permitir(chaveEmail, 3, Duration.ofHours(1))) {
+
+            return Response.ok().entity("Se o e-mail existir, um link de recuperação foi enviado.").build();
+        }
+
         usuarioService.solicitarRecuperacaoSenha(request.email());
         return Response.ok().entity("Se o e-mail existir, um link de recuperação foi enviado.").build();
     }

@@ -4,6 +4,7 @@ package dev.eduardodib.service.usuario;
 
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.service.email.RecuperacaoSenhaService;
+import dev.eduardodib.util.HashUtil;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,25 +41,28 @@ public class UsuarioService {
     @Transactional
     public void solicitarRecuperacaoSenha(String email) {
         UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
-
         if (usuario == null) {
-            return; // Retorno silencioso para evitar user enumeration
+            return;
         }
 
-        String token = UUID.randomUUID().toString();
+        RecuperacaoSenhaEntity.invalidarTokensAtivos(usuario);
+
+        String tokenBruto = UUID.randomUUID().toString();
+        String tokenHash = HashUtil.sha256(tokenBruto);
 
         RecuperacaoSenhaEntity recuperacao = new RecuperacaoSenhaEntity();
         recuperacao.usuario = usuario;
-        recuperacao.token = token;
+        recuperacao.token = tokenHash;
         recuperacao.expiracao = LocalDateTime.now().plusHours(1);
         recuperacao.persist();
 
-        emailService.enviarEmailRecuperacao(usuario.email, token);
+        emailService.enviarEmailRecuperacao(usuario.email, tokenBruto);
     }
 
     @Transactional
-    public void redefinirSenha(String token, String novaSenha) {
-        RecuperacaoSenhaEntity recuperacao = RecuperacaoSenhaEntity.findByToken(token);
+    public void redefinirSenha(String tokenBruto, String novaSenha) {
+        String tokenHash = HashUtil.sha256(tokenBruto);
+        RecuperacaoSenhaEntity recuperacao = RecuperacaoSenhaEntity.findByToken(tokenHash);
 
         if (recuperacao == null || recuperacao.usado) {
             throw new IllegalArgumentException("Token inválido ou já utilizado.");

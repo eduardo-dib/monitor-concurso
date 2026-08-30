@@ -76,4 +76,11 @@ public record ErrorException(int status, String mensagem, String endpoint) {
                 .entity(new ErrorException(500, "Erro no sistema: " + mensagem, endpoint))
                 .build();
     }
+
+    public static Response tooManyRequests(String mensagem, String endpoint) {
+        LOG.warnf("[RATE LIMIT] %s | Endpoint: %s", mensagem, endpoint);
+        return Response.status(429)
+                .entity(new ErrorException(429, "Erro no sistema: " + mensagem, endpoint))
+                .build();
+    }
 }

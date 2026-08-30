@@ -22,4 +22,7 @@ public class RecuperacaoSenhaEntity extends PanacheEntity {
     public static RecuperacaoSenhaEntity findByToken(String token) {
         return find("token", token).firstResult();
     }
+    public static void invalidarTokensAtivos(UsuarioEntity usuario) {
+        update("usado = true where usuario = ?1 and usado = false", usuario);
+    }
 }
