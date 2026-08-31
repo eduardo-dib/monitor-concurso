@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { cadastrarUsuario } from '@/api/usuarios'
-import type { ApiErrorResponse } from '@/types/api'
+import { useAuthStore } from '@/stores/auth'
+import { login } from '@/api/usuarios'
 
 const router = useRouter()
 
@@ -14,6 +15,8 @@ const confirmarSenha = ref('')
 
 const carregando = ref(false)
 const erro = ref('')
+
+const auth = useAuthStore()
 
 async function handleSubmit() {
   erro.value = ''
@@ -26,9 +29,11 @@ async function handleSubmit() {
   carregando.value = true
   try {
     await cadastrarUsuario({ nome: nome.value, email: email.value, senha: senha.value })
-    router.push('/login')
+    const resposta = await login({ email: email.value, senha: senha.value })
+    auth.setUsuario(resposta.nome)
+    router.push('/alertas')
   } catch (e) {
-    if (axios.isAxiosError<ApiErrorResponse>(e) && e.response?.data?.mensagem) {
+    if (axios.isAxiosError(e) && e.response?.data?.mensagem) {
       erro.value = e.response.data.mensagem
     } else {
       erro.value = 'Não foi possível concluir o cadastro. Tente novamente.'

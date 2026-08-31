@@ -131,7 +131,7 @@
           <h2 class="text-base font-semibold text-primary mb-2">10. Contato</h2>
           <p>
             Dúvidas ou solicitações sobre seus dados pessoais podem ser enviadas para
-            <a href="mailto:cardozoedudib@gmail.com" class="text-accent hover:underline"
+            <a href="mailto:vigiaconcursoshml@gmail.com" class="text-accent hover:underline"
               >vigiaconcursoshml@gmail.com</a
             >.
           </p>

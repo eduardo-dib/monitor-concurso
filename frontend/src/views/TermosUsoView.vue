@@ -124,7 +124,7 @@
           <h2 class="text-base font-semibold text-primary mb-2">11. Contato</h2>
           <p>
             Dúvidas sobre estes Termos podem ser enviadas para
-            <a href="mailto:cardozoedudib@gmail.com" class="text-accent hover:underline"
+            <a href="mailto:vigiaconcursoshml@gmail.com" class="text-accent hover:underline"
               >vigiaconcursoshml@gmail.com</a
             >.
           </p>
