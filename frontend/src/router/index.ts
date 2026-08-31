@@ -39,6 +39,16 @@ const router = createRouter({
       component: () => import('@/views/CriarAlertaView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/privacidade',
+      name: 'privacidade',
+      component: () => import('@/views/PoliticaPrivacidadeView.vue'),
+    },
+    {
+      path: '/termos',
+      name: 'termos',
+      component: () => import('@/views/TermosUsoView.vue'),
+    },
   ],
 })
 
