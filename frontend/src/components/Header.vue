@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -24,15 +33,25 @@ import { RouterLink } from 'vue-router'
       </RouterLink>
 
       <nav class="flex items-center gap-4 text-sm">
-        <RouterLink to="/login" class="text-primary hover:text-accent transition-colors"
-          >Entrar</RouterLink
-        >
-        <RouterLink
-          to="/cadastro"
-          class="bg-accent text-white px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity"
-        >
-          Cadastrar
-        </RouterLink>
+        <template v-if="auth.autenticado">
+          <RouterLink to="/alertas" class="text-primary hover:text-accent transition-colors"
+            >Meus alertas</RouterLink
+          >
+          <button @click="handleLogout" class="text-primary hover:text-accent transition-colors">
+            Sair
+          </button>
+        </template>
+        <template v-else>
+          <RouterLink to="/login" class="text-primary hover:text-accent transition-colors"
+            >Entrar</RouterLink
+          >
+          <RouterLink
+            to="/cadastro"
+            class="bg-accent text-white px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity"
+          >
+            Cadastrar
+          </RouterLink>
+        </template>
       </nav>
     </div>
   </header>

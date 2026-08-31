@@ -26,3 +26,13 @@ export async function buscarUsuarioLogado(): Promise<UsuarioResponse> {
   const { data } = await api.get<UsuarioResponse>('/usuarios/me')
   return data
 }
+
+export async function solicitarRecuperacaoSenha(email: string): Promise<string> {
+  const { data } = await api.post<string>('/usuarios/esqueci-senha', { email })
+  return data
+}
+
+export async function redefinirSenha(token: string, novaSenha: string): Promise<string> {
+  const { data } = await api.post<string>('/usuarios/redefinir-senha', { token, novaSenha })
+  return data
+}

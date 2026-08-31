@@ -13,7 +13,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/alertas',
+      name: 'home',
+      component: () => import('@/views/MainPageView.vue'),
     },
     {
       path: '/cadastro',
@@ -49,17 +50,29 @@ const router = createRouter({
       name: 'termos',
       component: () => import('@/views/TermosUsoView.vue'),
     },
+    {
+      path: '/esqueci-senha',
+      name: 'esqueci-senha',
+      component: () => import('@/views/EsqueciSenhaView.vue'),
+    },
+    {
+      path: '/redefinir-senha',
+      name: 'redefinir-senha',
+      component: () => import('@/views/RedefinirSenhaView.vue'),
+    },
   ],
 })
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  await auth.verificarSessao()
 
-  if (to.meta.requiresAuth) {
-    const autenticado = await auth.verificarSessao()
-    if (!autenticado) {
-      return { name: 'login' }
-    }
+  if (to.name === 'home' && auth.autenticado) {
+    return { name: 'alertas' }
+  }
+
+  if (to.meta.requiresAuth && !auth.autenticado) {
+    return { name: 'login' }
   }
 
   if (to.meta.somenteVisitante && auth.autenticado) {

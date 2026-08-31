@@ -51,6 +51,7 @@ async function handleSubmit() {
           />
         </div>
 
+
         <div>
           <label for="senha" class="block text-sm font-medium text-primary mb-1">Senha</label>
           <input
@@ -60,6 +61,12 @@ async function handleSubmit() {
             required
             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
+          <RouterLink
+            to="/esqueci-senha"
+            class="text-xs text-accent hover:underline block mt-1 text-right"
+          >
+            Esqueci minha senha
+          </RouterLink>
         </div>
 
         <p v-if="erro" class="text-sm text-red-600">{{ erro }}</p>
