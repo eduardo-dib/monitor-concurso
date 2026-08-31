@@ -1,6 +1,8 @@
 package dev.eduardodib.resource.usuario;
 
 
+import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
+import dev.eduardodib.domain.publicacaoencontrada.PublicacaoEncontradaEntity;
 import dev.eduardodib.domain.usuario.CadastroUsuarioResponseDTO;
 import dev.eduardodib.domain.usuario.LoginResponseDTO;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
@@ -13,11 +15,13 @@ import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.security.Authenticated;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.*;
 
 import java.time.Duration;
+import java.util.List;
 
 
 @Path("/usuarios")
@@ -42,6 +46,7 @@ public class UsuarioResource {
     public record LoginRequest(String email, String senha) {}
     public record SolicitarRecuperacaoRequest(String email) {}
     public record RedefinirSenhaRequest(String token, String novaSenha) {}
+    public record ExclusaoContaRequest(String senha) {}
 
     @POST
     @Path("/cadastrar")
@@ -141,6 +146,57 @@ public class UsuarioResource {
             return Response.ok().entity("Senha redefinida com sucesso.").build();
         } catch (IllegalArgumentException e) {
             return ErrorException.badRequest(e.getMessage(), "/usuarios/redefinir-senha");
+        }
+    }
+
+    @DELETE
+    @Path("/me")
+    @Authenticated
+    @Transactional
+    public Response excluirConta(ExclusaoContaRequest request, @Context SecurityContext securityContext) {
+        String email = securityContext.getUserPrincipal().getName();
+        UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
+
+        if (usuario == null) {
+            return ErrorException.notFound("Usuário não encontrado", "/usuarios/me");
+        }
+
+        if (request == null || request.senha() == null || request.senha().isBlank()) {
+            return ErrorException.badRequest("Senha é obrigatória para confirmar a exclusão", "/usuarios/me");
+        }
+
+        if (!BcryptUtil.matches(request.senha(), usuario.senhaHash)) {
+            return ErrorException.unauthorized("Senha incorreta", "/usuarios/me");
+        }
+
+        try {
+            List<AlertaMonitoramentoEntity> alertas =
+                    AlertaMonitoramentoEntity.list("usuario", usuario);
+
+            if (!alertas.isEmpty()) {
+                PublicacaoEncontradaEntity.delete("alerta in ?1", alertas);
+            }
+
+            AlertaMonitoramentoEntity.delete("usuario", usuario);
+
+            String emailExcluido = usuario.email;
+            usuario.delete();
+
+            //LOG.infof("Conta excluída via LGPD: %s", emailExcluido);
+
+            NewCookie cookie = new NewCookie.Builder("token")
+                    .value("")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .secure(cookieSecure)
+                    .sameSite(NewCookie.SameSite.LAX)
+                    .build();
+
+            return Response.noContent().cookie(cookie).build();
+
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao excluir conta", "/usuarios/me", e);
         }
     }
 }
