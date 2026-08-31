@@ -16,6 +16,7 @@ import dev.eduardodib.client.api.estadual.sp.SaoPauloApiIntegration;
 import dev.eduardodib.client.api.municipal.ApiResponse;
 import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
+import dev.eduardodib.scraper.ac.AcreScraper;
 import dev.eduardodib.scraper.ce.CearaScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
 import dev.eduardodib.scraper.rj.RioDeJaneiroScraper;
@@ -84,6 +85,9 @@ public class MonitoramentoResource {
 
     @Inject
     SantaCatarinaApiIntegration santaCatarinaApiIntegration;
+
+    @Inject
+    AcreScraper acreScraper;
 
 
     @GET
@@ -295,6 +299,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário de SC", "/monitoramento/buscar-estadual-sc", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-ac")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualAc(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    acreScraper.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do AC", "/monitoramento/buscar-estadual-ac", e);
         }
     }
 
