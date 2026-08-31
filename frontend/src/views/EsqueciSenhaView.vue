@@ -30,9 +30,6 @@ async function handleSubmit() {
           Se o e-mail informado estiver cadastrado, você vai receber um link para redefinir sua
           senha em instantes.
         </p>
-        <p class="text-gray-400 text-xs">
-          Se pedir um novo link mais tarde, o link anterior deixa de funcionar.
-        </p>
       </template>
 
       <template v-else>
