@@ -5,6 +5,7 @@ import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
 import dev.eduardodib.domain.publicacaoencontrada.PublicacaoEncontradaEntity;
 import dev.eduardodib.domain.usuario.CadastroUsuarioResponseDTO;
 import dev.eduardodib.domain.usuario.LoginResponseDTO;
+import dev.eduardodib.domain.usuario.RecuperacaoSenhaEntity;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.service.ratelimit.RateLimiterService;
 import dev.eduardodib.service.token.TokenService;
@@ -180,7 +181,8 @@ public class UsuarioResource {
             AlertaMonitoramentoEntity.delete("usuario", usuario);
 
             String emailExcluido = usuario.email;
-            usuario.delete();
+            RecuperacaoSenhaEntity.delete("usuario", usuario);
+            UsuarioEntity.delete("id", usuario.id);
 
             //LOG.infof("Conta excluída via LGPD: %s", emailExcluido);
 
