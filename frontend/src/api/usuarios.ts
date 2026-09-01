@@ -36,3 +36,7 @@ export async function redefinirSenha(token: string, novaSenha: string): Promise<
   const { data } = await api.post<string>('/usuarios/redefinir-senha', { token, novaSenha })
   return data
 }
+
+export async function excluirConta(senha: string): Promise<void> {
+  await api.delete('/usuarios/me', { data: { senha } })
+}

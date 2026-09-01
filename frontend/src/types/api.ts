@@ -27,6 +27,12 @@ export interface AlertaResponse {
   usuarioEmail: string
 }
 
+export interface ExclusaoContaPayload {
+  senha: string
+}
+
+
+
 
 
 export interface CriarAlertaPayload {

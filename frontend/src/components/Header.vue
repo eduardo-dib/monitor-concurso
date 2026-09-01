@@ -37,6 +37,9 @@ async function handleLogout() {
           <RouterLink to="/alertas" class="text-primary hover:text-accent transition-colors"
             >Meus alertas</RouterLink
           >
+          <RouterLink to="/conta" class="text-primary hover:text-accent transition-colors"
+            >Minha conta</RouterLink
+          >
           <button @click="handleLogout" class="text-primary hover:text-accent transition-colors">
             Sair
           </button>

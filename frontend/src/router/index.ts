@@ -60,6 +60,12 @@ const router = createRouter({
       name: 'redefinir-senha',
       component: () => import('@/views/RedefinirSenhaView.vue'),
     },
+    {
+      path: '/conta',
+      name: 'conta',
+      component: () => import('@/views/MinhaContaView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

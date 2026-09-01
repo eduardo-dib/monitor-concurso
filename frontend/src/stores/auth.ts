@@ -37,5 +37,19 @@ export const useAuthStore = defineStore('auth', () => {
     sessaoVerificada.value = false
   }
 
-  return { nome, autenticado, sessaoVerificada, setUsuario, verificarSessao, logout }
+  function limparSessaoLocal() {
+    nome.value = null
+    autenticado.value = false
+    sessaoVerificada.value = false
+  }
+
+  return {
+    nome,
+    autenticado,
+    sessaoVerificada,
+    setUsuario,
+    verificarSessao,
+    logout,
+    limparSessaoLocal,
+  }
 })
