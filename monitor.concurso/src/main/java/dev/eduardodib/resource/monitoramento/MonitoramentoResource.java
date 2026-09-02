@@ -2,6 +2,7 @@ package dev.eduardodib.resource.monitoramento;
 
 
 import dev.eduardodib.client.api.estadual.al.AlagoasApiIntegration;
+import dev.eduardodib.client.api.estadual.am.AmazonasApiIntegration;
 import dev.eduardodib.client.api.estadual.ap.AmapaApiIntegration;
 import dev.eduardodib.client.api.estadual.ba.BahiaApiIntegration;
 import dev.eduardodib.client.api.estadual.ce.CearaApiIntegration;
@@ -92,6 +93,9 @@ public class MonitoramentoResource {
 
     @Inject
     AmapaApiIntegration amapaApiIntegration;
+
+    @Inject
+    AmazonasApiIntegration amazonasApiIntegration;
 
 
     @GET
@@ -329,6 +333,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do AP", "/monitoramento/buscar-estadual-ap", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-am")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualAm(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    amazonasApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do AM", "/monitoramento/buscar-estadual-am", e);
         }
     }
 
