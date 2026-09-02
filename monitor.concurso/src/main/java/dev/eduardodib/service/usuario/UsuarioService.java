@@ -3,13 +3,17 @@ package dev.eduardodib.service.usuario;
 
 
 import dev.eduardodib.domain.usuario.UsuarioEntity;
+import dev.eduardodib.domain.usuario.VerificacaoEmailEntity;
 import dev.eduardodib.service.email.RecuperacaoSenhaService;
+import dev.eduardodib.service.email.VerificacaoEmailService;
 import dev.eduardodib.util.HashUtil;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import dev.eduardodib.domain.usuario.RecuperacaoSenhaEntity;
+
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,19 +23,72 @@ public class UsuarioService {
     @Inject
     RecuperacaoSenhaService emailService;
 
+    @Inject
+    VerificacaoEmailService verificacaoEmailService;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     @Transactional
     public UsuarioEntity cadastrar(String nome, String email, String senha) {
         if (UsuarioEntity.findByEmail(email) != null) {
             throw new IllegalArgumentException("E-mail já cadastrado");
         }
-
         UsuarioEntity usuario = new UsuarioEntity();
         usuario.nome = nome;
         usuario.email = email;
         usuario.senhaHash = BcryptUtil.bcryptHash(senha);
         usuario.persist();
 
+        enviarCodigoVerificacao(usuario);
+
         return usuario;
+    }
+
+    @Transactional
+    public void enviarCodigoVerificacao(UsuarioEntity usuario) {
+        VerificacaoEmailEntity.invalidarCodigosAtivos(usuario);
+
+        String codigoBruto = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+        String codigoHash = HashUtil.sha256(codigoBruto);
+
+        VerificacaoEmailEntity verificacao = new VerificacaoEmailEntity();
+        verificacao.usuario = usuario;
+        verificacao.codigo = codigoHash;
+        verificacao.expiracao = LocalDateTime.now().plusMinutes(15);
+        verificacao.persist();
+
+        verificacaoEmailService.enviarCodigoVerificacao(usuario.email, codigoBruto);
+    }
+
+    @Transactional
+    public void verificarEmail(String email, String codigo) {
+        UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
+        // mesma mensagem genérica pra usuário inexistente ou código errado — evita enumeração
+        if (usuario == null || usuario.emailVerificado) {
+            throw new IllegalArgumentException("Código inválido ou expirado.");
+        }
+
+        String codigoHash = HashUtil.sha256(codigo);
+        VerificacaoEmailEntity verificacao = VerificacaoEmailEntity.findValido(usuario, codigoHash);
+
+        if (verificacao == null || verificacao.expiracao.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Código inválido ou expirado.");
+        }
+
+        usuario.emailVerificado = true;
+        usuario.persist();
+
+        verificacao.usado = true;
+        verificacao.persist();
+    }
+
+    @Transactional
+    public void reenviarCodigoVerificacao(String email) {
+        UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
+        if (usuario == null || usuario.emailVerificado) {
+            return; // silêncio proposital
+        }
+        enviarCodigoVerificacao(usuario);
     }
 
     public boolean verificarSenha(String senha, String senhaHash) {

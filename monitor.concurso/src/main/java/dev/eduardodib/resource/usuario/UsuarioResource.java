@@ -48,6 +48,8 @@ public class UsuarioResource {
     public record SolicitarRecuperacaoRequest(String email) {}
     public record RedefinirSenhaRequest(String token, String novaSenha) {}
     public record ExclusaoContaRequest(String senha) {}
+    public record VerificarEmailRequest(String email, String codigo) {}
+    public record ReenviarCodigoRequest(String email) {}
 
     @POST
     @Path("/cadastrar")
@@ -73,6 +75,9 @@ public class UsuarioResource {
         UsuarioEntity usuario = UsuarioEntity.findByEmail(request.email());
         if (usuario == null || !BcryptUtil.matches(request.senha(), usuario.senhaHash)) {
             return ErrorException.unauthorized("Credenciais inválidas", "/usuarios/login");
+        }
+        if (!usuario.emailVerificado) {
+            return ErrorException.unauthorized("E-mail ainda não verificado. Confira sua caixa de entrada.", "/usuarios/login");
         }
 
         String token = tokenService.gerarToken(usuario);
@@ -200,5 +205,49 @@ public class UsuarioResource {
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao excluir conta", "/usuarios/me", e);
         }
+    }
+
+    @POST
+    @Path("/verificar-email")
+    public Response verificarEmail(VerificarEmailRequest request) {
+        String url = "/usuarios/verificar-email";
+        if (request == null
+                || request.email() == null || request.email().isBlank()
+                || request.codigo() == null || request.codigo().isBlank()) {
+            return ErrorException.badRequest("E-mail e código são obrigatórios", url);
+        }
+
+        String ip = IpUtil.extrair(httpRequest);
+        if (!rateLimiterService.permitir("verificar-email:" + request.email().toLowerCase(), 10, Duration.ofMinutes(15))) {
+            return ErrorException.tooManyRequests("Muitas tentativas. Solicite um novo código.", url);
+        }
+
+        try {
+            usuarioService.verificarEmail(request.email(), request.codigo());
+            return Response.ok().entity("E-mail verificado com sucesso.").build();
+        } catch (IllegalArgumentException e) {
+            return ErrorException.badRequest(e.getMessage(), url);
+        }
+    }
+
+    @POST
+    @Path("/reenviar-codigo")
+    public Response reenviarCodigo(ReenviarCodigoRequest request) {
+        String url = "/usuarios/reenviar-codigo";
+        if (request == null || request.email.isBlank() || request.email().isBlank()) {
+            return ErrorException.badRequest("E-mail é obrigatório", url);
+        }
+
+        String ip = IpUtil.extrair(httpRequest);
+        if (!rateLimiterService.permitir("reenviar-codigo:ip:" + ip, 10, Duration.ofHours(1))) {
+            return ErrorException.tooManyRequests("Muitas tentativas. Tente novamente mais tarde.", url);
+        }
+
+        String chaveEmail = "reenviar-codigo:email:" + request.email().toLowerCase();
+        if (rateLimiterService.permitir(chaveEmail, 3, Duration.ofHours(1))) {
+            usuarioService.reenviarCodigoVerificacao(request.email());
+        }
+
+        return Response.ok().entity("Se o e-mail existir e ainda não estiver verificado, um novo código foi enviado.").build();
     }
 }

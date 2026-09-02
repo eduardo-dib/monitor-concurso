@@ -17,6 +17,9 @@ public class UsuarioEntity extends PanacheEntity {
     @Column(nullable = false)
     public String nome;
 
+    @Column(name = "email_verificado", nullable = false)
+    public boolean emailVerificado = false;
+
     public LocalDateTime criadoEm = LocalDateTime.now();
 
     public static UsuarioEntity findByEmail(String email) {
