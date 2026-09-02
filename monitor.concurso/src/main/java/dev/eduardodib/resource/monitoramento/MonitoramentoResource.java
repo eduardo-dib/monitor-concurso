@@ -20,6 +20,7 @@ import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import dev.eduardodib.scraper.ac.AcreScraper;
 import dev.eduardodib.scraper.ce.CearaScraper;
+import dev.eduardodib.scraper.pa.ParaScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
 import dev.eduardodib.scraper.rj.RioDeJaneiroScraper;
 import dev.eduardodib.scraper.to.TocantinsScraper;
@@ -96,6 +97,9 @@ public class MonitoramentoResource {
 
     @Inject
     AmazonasApiIntegration amazonasApiIntegration;
+
+    @Inject
+    ParaScraper paraScraper;
 
 
     @GET
@@ -346,6 +350,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do AM", "/monitoramento/buscar-estadual-am", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-pa")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualPa(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    paraScraper.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário do PA", "/monitoramento/buscar-estadual-pa", e);
         }
     }
 
