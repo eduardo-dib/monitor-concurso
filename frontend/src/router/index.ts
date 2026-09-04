@@ -66,6 +66,11 @@ const router = createRouter({
       component: () => import('@/views/MinhaContaView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/contato',
+      name: 'contato',
+      component: () => import('@/views/ContatoView.vue'),
+    },
   ],
 })
 

@@ -1,4 +1,5 @@
 export type FonteMonitoramento = 'MUNICIPAL' | 'ESTADUAL' | 'FEDERAL' | 'TODOS'
+export type CategoriaContato = 'DUVIDA' | 'SUGESTAO' | 'RECLAMACAO' | 'ELOGIO' | 'OUTRO'
 
 export interface UsuarioResponse {
   id: number
@@ -29,6 +30,13 @@ export interface AlertaResponse {
 
 export interface ExclusaoContaPayload {
   senha: string
+}
+
+export interface ContatoRequest {
+  nome: string
+  email: string
+  categoria: CategoriaContato
+  mensagem: string
 }
 
 
