@@ -1,42 +1,55 @@
 package dev.eduardodib.exception;
 
-import io.quarkus.vertx.http.runtime.filters.Filter;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.core.http.HttpServerRequest;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
 
-//@ApplicationScoped
-//public class SegurancaLog implements Filter {
+@Provider
+@ApplicationScoped
+public class SegurancaLog implements ContainerResponseFilter {
 
-   // private static final Logger LOG = Logger.getLogger(SegurancaLog.class);
+    private static final Logger LOG = Logger.getLogger(SegurancaLog.class);
 
-  //  @Override
-    //public Handler<RoutingContext> getHandler() {
-      //  return context -> {
-       //     context.addBodyEndHandler(v -> {
-        //        int status = context.response().getStatusCode();
-        //        LOG.infof("FILTER ATIVADO: %d %s", status, context.request().path());
+    @Inject
+    HttpServerRequest request;
 
-//                if (status == 401 || status == 403) {
-  //                  String method = context.request().method().name();
-    //                String path = context.request().path();
- //                   String ip = context.request().getHeader("X-Forwarded-For");
-//
-   //                  if (ip == null || ip.isEmpty()) {
-     //                   ip = context.request().remoteAddress().host();
-       //             }
+    @Override
+    public void filter(
+            ContainerRequestContext requestContext,
+            ContainerResponseContext responseContext) {
 
-         //           LOG.warnf("[SEGURANÇA] %d | Método: %s | Endpoint: %s | IP: %s",
-           //                 status, method, path, ip);
-            //    }
-           // });
-           // context.next();
-        //};
-    //}
+        int status = responseContext.getStatus();
 
-    //@Override
-   // public int getPriority() {
-      //  return 100;
-  //  }
+        if (status != 401 && status != 403) {
+            return;
+        }
 
+        String method = requestContext.getMethod();
+        String path = requestContext.getUriInfo().getPath();
+
+        String ip = request.getHeader("X-Forwarded-For");
+
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+
+        if (ip == null || ip.isBlank()) {
+            ip = request.remoteAddress() != null
+                    ? request.remoteAddress().host()
+                    : "IP Desconhecido";
+        }
+
+        LOG.warnf(
+                "[SEGURANÇA] %d | MÉT: %s | ENDPOINT: %s | IP: %s",
+                status,
+                method,
+                path,
+                ip
+        );
+    }
+}
