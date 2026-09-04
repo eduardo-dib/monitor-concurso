@@ -26,6 +26,7 @@ import dev.eduardodib.scraper.parana.DioeParanaScraper;
 import dev.eduardodib.scraper.rj.RioDeJaneiroScraper;
 import dev.eduardodib.scraper.to.TocantinsScraper;
 import dev.eduardodib.service.monitoramento.MonitoramentoService;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -39,6 +40,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Path("/monitoramento")
+@Authenticated
 public class MonitoramentoResource {
 
     @Inject
