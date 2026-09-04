@@ -11,6 +11,7 @@ import dev.eduardodib.client.api.estadual.es.EspiritoSantoApiIntegration;
 import dev.eduardodib.client.api.estadual.go.GoiasApiIntegration;
 import dev.eduardodib.client.api.estadual.ma.MaranhaoApiIntegration;
 import dev.eduardodib.client.api.estadual.mg.MinasGeraisApiIntegration;
+import dev.eduardodib.client.api.estadual.pe.PernambucoApiIntegration;
 import dev.eduardodib.client.api.estadual.pi.PiauiApiIntegration;
 import dev.eduardodib.client.api.estadual.rn.RioGrandeNorteApiIntegration;
 import dev.eduardodib.client.api.estadual.sc.SantaCatarinaApiIntegration;
@@ -100,6 +101,9 @@ public class MonitoramentoResource {
 
     @Inject
     ParaScraper paraScraper;
+
+    @Inject
+    PernambucoApiIntegration pernambucoApiIntegration;
 
 
     @GET
@@ -363,6 +367,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário do PA", "/monitoramento/buscar-estadual-pa", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-estadual-pe")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarEstadualPe(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    pernambucoApiIntegration.buscar(query, LocalDate.now().minusDays(30).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no diário de PE", "/monitoramento/buscar-estadual-pe", e);
         }
     }
 

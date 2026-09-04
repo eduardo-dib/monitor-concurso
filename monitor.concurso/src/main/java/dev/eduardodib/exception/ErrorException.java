@@ -83,4 +83,11 @@ public record ErrorException(int status, String mensagem, String endpoint) {
                 .entity(new ErrorException(429, "Erro no sistema: " + mensagem, endpoint))
                 .build();
     }
+
+    public static Response forbidden(String mensagem, String endpoint) {
+        LOG.warnf("[BETA] %s | Endpoint: %s", mensagem, endpoint);
+        return Response.status(Response.Status.FORBIDDEN)
+                .entity(new ErrorException(403, "Erro no sistema: " + mensagem, endpoint))
+                .build();
+    }
 }

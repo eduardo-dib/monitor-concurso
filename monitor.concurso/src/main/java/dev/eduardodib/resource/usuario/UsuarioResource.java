@@ -7,6 +7,7 @@ import dev.eduardodib.domain.usuario.CadastroUsuarioResponseDTO;
 import dev.eduardodib.domain.usuario.LoginResponseDTO;
 import dev.eduardodib.domain.usuario.RecuperacaoSenhaEntity;
 import dev.eduardodib.domain.usuario.UsuarioEntity;
+import dev.eduardodib.exception.BetaLotadoException;
 import dev.eduardodib.service.ratelimit.RateLimiterService;
 import dev.eduardodib.service.token.TokenService;
 import dev.eduardodib.service.usuario.UsuarioService;
@@ -61,6 +62,8 @@ public class UsuarioResource {
             return Response.status(Response.Status.CREATED)
                     .entity(CadastroUsuarioResponseDTO.fromEntity(usuario))
                     .build();
+        } catch (BetaLotadoException e) {
+            return ErrorException.forbidden(e.getMessage(), usuarioCadastrarUrl);
         } catch (IllegalArgumentException e) {
             return ErrorException.conflict(e.getMessage(), usuarioCadastrarUrl, e);
         }

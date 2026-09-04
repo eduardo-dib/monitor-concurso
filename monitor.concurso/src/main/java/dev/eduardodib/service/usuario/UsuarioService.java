@@ -4,6 +4,7 @@ package dev.eduardodib.service.usuario;
 
 import dev.eduardodib.domain.usuario.UsuarioEntity;
 import dev.eduardodib.domain.usuario.VerificacaoEmailEntity;
+import dev.eduardodib.exception.BetaLotadoException;
 import dev.eduardodib.service.email.RecuperacaoSenhaService;
 import dev.eduardodib.service.email.VerificacaoEmailService;
 import dev.eduardodib.util.HashUtil;
@@ -12,6 +13,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import dev.eduardodib.domain.usuario.RecuperacaoSenhaEntity;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -28,8 +30,15 @@ public class UsuarioService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+    @ConfigProperty(name = "app.beta.max-usuarios")
+    int betaMaxUsuarios;
+
     @Transactional
     public UsuarioEntity cadastrar(String nome, String email, String senha) {
+        if (betaMaxUsuarios >= 0 && UsuarioEntity.count() >= betaMaxUsuarios) {
+            throw new BetaLotadoException("As vagas do período de testes estão esgotadas no momento.");
+        }
+
         if (UsuarioEntity.findByEmail(email) != null) {
             throw new IllegalArgumentException("E-mail já cadastrado");
         }
