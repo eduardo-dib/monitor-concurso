@@ -4,7 +4,6 @@ import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class VerificacaoEmailService {
@@ -12,16 +11,11 @@ public class VerificacaoEmailService {
     @Inject
     Mailer mailer;
 
-    @ConfigProperty(name = "app.frontend.url")
-    String frontendUrl;
-
     public void enviarCodigoVerificacao(String emailDestino, String codigo) {
-        //String link = frontendUrl + "/verificar-email?email=" + emailDestino;
         String html = """
             <h2>Confirme seu e-mail - VigiaConcursos</h2>
             <p>Use o código abaixo para confirmar seu cadastro. Ele expira em 15 minutos.</p>
             <h1 style="letter-spacing: 4px;">%s</h1>
-            <p><a href="%s">Clique aqui para ir até a tela de confirmação</a></p>
             <p>Se você não se cadastrou no VigiaConcursos, ignore este e-mail.</p>
         """.formatted(codigo);
         mailer.send(Mail.withHtml(emailDestino, "Confirme seu cadastro", html));
