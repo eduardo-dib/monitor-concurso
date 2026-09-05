@@ -33,25 +33,30 @@ public class UsuarioService {
     @ConfigProperty(name = "app.beta.max-usuarios")
     int betaMaxUsuarios;
 
-    @Transactional
-    public UsuarioEntity cadastrar(String nome, String email, String senha) {
-        if (betaMaxUsuarios >= 0 && UsuarioEntity.count() >= betaMaxUsuarios) {
-            throw new BetaLotadoException("As vagas do período de testes estão esgotadas no momento.");
-        }
+   @Transactional
+   public UsuarioEntity cadastrar(String nome, String email, String senha) {
+       UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
 
-        if (UsuarioEntity.findByEmail(email) != null) {
-            throw new IllegalArgumentException("E-mail já cadastrado");
-        }
-        UsuarioEntity usuario = new UsuarioEntity();
-        usuario.nome = nome;
-        usuario.email = email;
-        usuario.senhaHash = BcryptUtil.bcryptHash(senha);
-        usuario.persist();
+       if (usuario != null && usuario.emailVerificado) {
+           throw new IllegalArgumentException("E-mail já cadastrado");
+       }
 
-        enviarCodigoVerificacao(usuario);
+       if (usuario == null) {
+           if (betaMaxUsuarios >= 0 && UsuarioEntity.count() >= betaMaxUsuarios) {
+               throw new BetaLotadoException("As vagas do período de testes estão esgotadas no momento.");
+           }
+           usuario = new UsuarioEntity();
+           usuario.email = email;
+       }
 
-        return usuario;
-    }
+       usuario.nome = nome;
+       usuario.senhaHash = BcryptUtil.bcryptHash(senha);
+       usuario.persist();
+
+       enviarCodigoVerificacao(usuario);
+
+       return usuario;
+   }
 
     @Transactional
     public void enviarCodigoVerificacao(UsuarioEntity usuario) {
@@ -72,7 +77,7 @@ public class UsuarioService {
     @Transactional
     public void verificarEmail(String email, String codigo) {
         UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
-        // mesma mensagem genérica pra usuário inexistente ou código errado — evita enumeração
+
         if (usuario == null || usuario.emailVerificado) {
             throw new IllegalArgumentException("Código inválido ou expirado.");
         }
@@ -95,7 +100,7 @@ public class UsuarioService {
     public void reenviarCodigoVerificacao(String email) {
         UsuarioEntity usuario = UsuarioEntity.findByEmail(email);
         if (usuario == null || usuario.emailVerificado) {
-            return; // silêncio proposital
+            return;
         }
         enviarCodigoVerificacao(usuario);
     }
