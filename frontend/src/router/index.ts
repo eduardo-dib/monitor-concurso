@@ -71,6 +71,12 @@ const router = createRouter({
       name: 'contato',
       component: () => import('@/views/ContatoView.vue'),
     },
+    {
+      path: '/verificar-email',
+      name: 'verificar-email',
+      component: () => import('@/views/VerificarEmailView.vue'),
+      meta: { public: true },
+    },
   ],
 })
 

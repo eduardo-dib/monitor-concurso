@@ -1,5 +1,11 @@
 import api from './api'
-import type { UsuarioResponse, LoginResponse } from '@/types/api'
+import type {
+  UsuarioResponse,
+  LoginResponse,
+  VerificarEmailPayload,
+  ReenviarCodigoPayload,
+} from '@/types/api'
+
 
 export interface CadastroPayload {
   nome: string
@@ -39,4 +45,14 @@ export async function redefinirSenha(token: string, novaSenha: string): Promise<
 
 export async function excluirConta(senha: string): Promise<void> {
   await api.delete('/usuarios/me', { data: { senha } })
+}
+
+export async function verificarEmail(payload: VerificarEmailPayload): Promise<string> {
+  const { data } = await api.post<string>('/usuarios/verificar-email', payload)
+  return data
+}
+
+export async function reenviarCodigo(payload: ReenviarCodigoPayload): Promise<string> {
+  const { data } = await api.post<string>('/usuarios/reenviar-codigo', payload)
+  return data
 }

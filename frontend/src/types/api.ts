@@ -51,6 +51,15 @@ export interface CriarAlertaPayload {
   fonte: FonteMonitoramento
 }
 
+export interface VerificarEmailPayload {
+  email: string
+  codigo: string
+}
+
+export interface ReenviarCodigoPayload {
+  email: string
+}
+
 
 
 
