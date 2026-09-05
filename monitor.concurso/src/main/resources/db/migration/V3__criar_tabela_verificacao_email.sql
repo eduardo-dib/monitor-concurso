@@ -1,6 +1,6 @@
 ALTER TABLE usuario ADD COLUMN email_verificado BOOLEAN NOT NULL DEFAULT FALSE;
 
--- contas já existentes (criadas antes dessa feature) são consideradas confiáveis
+
 UPDATE usuario SET email_verificado = TRUE;
 
 
