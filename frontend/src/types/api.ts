@@ -1,5 +1,7 @@
 export type FonteMonitoramento = 'MUNICIPAL' | 'ESTADUAL' | 'FEDERAL' | 'TODOS'
 export type CategoriaContato = 'DUVIDA' | 'SUGESTAO' | 'RECLAMACAO' | 'ELOGIO' | 'OUTRO'
+export type TipoAviso = 'INFO' | 'ALERTA' | 'MANUTENCAO'
+
 
 export interface UsuarioResponse {
   id: number
@@ -58,6 +60,16 @@ export interface VerificarEmailPayload {
 
 export interface ReenviarCodigoPayload {
   email: string
+}
+
+export interface AvisoResponse {
+  id: number
+  titulo: string
+  mensagem: string
+  tipo: TipoAviso
+  ativo: boolean
+  criadoEm: string
+  expiraEm: string | null
 }
 
 

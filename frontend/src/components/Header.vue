@@ -45,6 +45,9 @@ async function handleLogout() {
           </button>
         </template>
         <template v-else>
+          <RouterLink to="/avisos" class="text-primary hover:text-accent transition-colors"
+            >Avisos</RouterLink
+          >
           <RouterLink to="/login" class="text-primary hover:text-accent transition-colors"
             >Entrar</RouterLink
           >

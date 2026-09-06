@@ -77,6 +77,13 @@ const router = createRouter({
       component: () => import('@/views/VerificarEmailView.vue'),
       meta: { public: true },
     },
+
+    {
+      path: '/avisos',
+      name: 'avisos',
+      component: () => import('@/views/AvisosView.vue'),
+      meta: { public: true },
+    },
   ],
 })
 
