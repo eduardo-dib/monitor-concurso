@@ -10,9 +10,7 @@ const router = useRouter()
 
 const palavrasChave = ref('')
 const estado = ref('')
-const municipio = ref('')
-const orgao = ref('')
-const fonte = ref<FonteMonitoramento>('TODOS')
+const fonte = ref<FonteMonitoramento>('ESTADUAL')
 
 const carregando = ref(false)
 const erro = ref('')
@@ -26,8 +24,8 @@ async function handleSubmit() {
     await criarAlerta({
       palavrasChave: palavrasChave.value,
       estado: estado.value,
-      municipio: municipio.value,
-      orgao: orgao.value,
+      municipio: '',
+      orgao: '',
       fonte: fonte.value,
     })
     router.push('/alertas')
@@ -67,20 +65,6 @@ async function handleSubmit() {
         </div>
 
         <div>
-          <label for="fonte" class="block text-sm font-medium text-primary mb-1">Fonte</label>
-          <select
-            id="fonte"
-            v-model="fonte"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            <option value="TODOS">Todos</option>
-            <option value="MUNICIPAL">Municipal</option>
-            <option value="ESTADUAL">Estadual</option>
-            <option value="FEDERAL">Federal</option>
-          </select>
-        </div>
-
-        <div>
           <label for="estado" class="block text-sm font-medium text-primary mb-1">Estado</label>
           <select
             id="estado"
@@ -99,30 +83,6 @@ async function handleSubmit() {
             Este estado ainda não tem integração ativa — o alerta será salvo, mas não vai gerar
             notificações até a cobertura ser adicionada.
           </p>
-        </div>
-
-        <div>
-          <label for="municipio" class="block text-sm font-medium text-primary mb-1">
-            Município <span class="text-gray-400 font-normal">(opcional)</span>
-          </label>
-          <input
-            id="municipio"
-            v-model="municipio"
-            type="text"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-        </div>
-
-        <div>
-          <label for="orgao" class="block text-sm font-medium text-primary mb-1">
-            Órgão <span class="text-gray-400 font-normal">(opcional)</span>
-          </label>
-          <input
-            id="orgao"
-            v-model="orgao"
-            type="text"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-          />
         </div>
 
         <p v-if="erro" class="text-sm text-red-600">{{ erro }}</p>
