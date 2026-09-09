@@ -129,16 +129,13 @@ public class MonitoramentoResource {
     @GET
     @Path("/buscar-estadual-pr")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response buscarEstadual(
-            @QueryParam("query") String query,
-            @QueryParam("estado") String estado
-    ) {
+    public Response buscarEstadualPr(@QueryParam("query") String query) {
         try {
             List<DiarioOficialScraper.PublicacaoScraped> resultado =
                     dioeParanaScraper.buscar(query, LocalDate.now().minusDays(30).toString());
             return Response.ok(resultado).build();
         } catch (Exception e) {
-            return ErrorException.internalError("Erro ao buscar no diário estadual", "/monitoramento/buscar-estadual", e);
+            return ErrorException.internalError("Erro ao buscar no diário estadual PR", "/monitoramento/buscar-estadual-pr", e);
         }
     }
 

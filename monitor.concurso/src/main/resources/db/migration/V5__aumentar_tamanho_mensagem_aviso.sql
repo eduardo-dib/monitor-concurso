@@ -1,0 +1,1 @@
+ALTER TABLE aviso ALTER COLUMN mensagem TYPE TEXT;

@@ -1,17 +1,18 @@
 package dev.eduardodib.scraper.parana;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.jboss.logging.Logger;
 
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,18 @@ import java.util.List;
 public class DioeParanaScraper implements DiarioOficialScraper {
 
     private static final Logger LOG = Logger.getLogger(DioeParanaScraper.class);
-    private static final String BASE_URL = "https://www.documentos.dioe.pr.gov.br/dioe/consultaPublicaPDF.do";
+
+
+    private static final String BASE_URL = "https://dioe.pr.gov.br//busca/busca/buscar/query";
+
+
+
+    private static final int PAGE_SIZE = 10;
+    private static final int MAX_PAGINAS_SEGURANCA = 50;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public String getEstado() {
@@ -31,102 +43,70 @@ public class DioeParanaScraper implements DiarioOficialScraper {
         List<PublicacaoScraped> resultado = new ArrayList<>();
 
         try {
-
-            Document paginaInicial = Jsoup.connect(BASE_URL + "?action=pgLocalizar")
-                    .userAgent("Mozilla/5.0")
-                    .get();
-
-            Element tokenInput = paginaInicial.selectFirst("input[name=org.apache.struts.taglib.html.TOKEN]");
-            if (tokenInput == null) {
-                LOG.warn("[DIOE-PR] Token CSRF não encontrado");
-                return resultado;
-            }
-            String token = tokenInput.val();
-            LOG.infof("[DIOE-PR] Token extraído: %s", token);
+            LocalDate dataInicial = (dataInicio != null && !dataInicio.isEmpty())
+                    ? LocalDate.parse(dataInicio)
+                    : LocalDate.now().minusDays(30);
+            LocalDate dataFinal = LocalDate.now();
 
 
-            String dataFormatada = "";
-            String dataHoje = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String termoEncoded = URLEncoder.encode("\"" + palavrasChave + "\"", StandardCharsets.UTF_8);
 
-            if (dataInicio != null && !dataInicio.isEmpty()) {
-                LocalDate data = LocalDate.parse(dataInicio);
-                dataFormatada = data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            }
+            int offset = 0;
+            int paginasLidas = 0;
 
+            while (paginasLidas < MAX_PAGINAS_SEGURANCA) {
+                String url = String.format("%s/%d/di:%s/df:%s/?1=1&q=%s",
+                        BASE_URL, offset, dataInicial, dataFinal, termoEncoded);
 
-            String url = BASE_URL
-                    + "?org.apache.struts.taglib.html.TOKEN=" + token
-                    + "&action=pgLocalizar"
-                    + "&enviado=true"
-                    + "&numero="
-                    + "&dataInicialEntrada=" + URLEncoder.encode(dataFormatada, StandardCharsets.UTF_8)
-                    + "&dataFinalEntrada=" + URLEncoder.encode(dataHoje, StandardCharsets.UTF_8)
-                    + "&search=" + URLEncoder.encode(palavrasChave, StandardCharsets.UTF_8)
-                    + "&diarioCodigo=3"
-                    + "&localizador=";
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Accept", "application/json, text/plain, */*")
+                        .header("Referer", "https://www.dioe.pr.gov.br/")
+                        .header("Origin", "https://www.dioe.pr.gov.br")
+                        .header("User-Agent", "Mozilla/5.0 (compatible; VigiaConcursosBot/1.0)")
+                        .GET()
+                        .build();
 
-            LOG.infof("[DIOE-PR] URL da busca: %s", url);
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0")
-                    .get();
-
-            LOG.infof("[DIOE-PR] Blocos encontrados: %d", doc.select("table[id^=dv_pagina_]").size());
-
-
-            Elements blocos = doc.select("table[id^=dv_pagina_]");
-
-            for (Element bloco : blocos) {
-                try {
-
-                    String data = "";
-                    Element labelData = bloco.select("td.labelpqn10:containsOwn(Data da Publicação)").first();
-                    if (labelData != null && labelData.nextElementSibling() != null) {
-                        data = labelData.nextElementSibling().text().trim();
-                    }
-
-
-                    String edicao = "";
-                    Element labelEdicao = bloco.select("td.labelpqn10:containsOwn(Nº da Edição)").first();
-                    if (labelEdicao != null && labelEdicao.nextElementSibling() != null) {
-                        edicao = labelEdicao.nextElementSibling().text().trim();
-                    }
-
-
-                    String pagina = "";
-                    Element labelPagina = bloco.select("span.label10").first();
-                    if (labelPagina != null) {
-                        pagina = labelPagina.text().replace("Pág", "").trim();
-                    }
-
-
-                    Element linkAmpliar = bloco.selectFirst("a[href^=javascript:ampliar]");
-                    String link = "";
-                    if (linkAmpliar != null) {
-                        String href = linkAmpliar.attr("href");
-                        String[] partes = href.replace("javascript:ampliar(", "")
-                                .replace(");", "")
-                                .replace("'", "")
-                                .split(",");
-                        if (partes.length >= 2) {
-                            String ec = partes[0].trim();
-                            String pg = partes[1].trim();
-                            link = "https://www.documentos.dioe.pr.gov.br/dioe/consultaPublicaPDF.do"
-                                    + "?action=pgLocalizar"
-                                    + "&search=" + URLEncoder.encode(palavrasChave, StandardCharsets.UTF_8)
-                                    + "&ec=" + ec
-                                    + "&pg=" + pg;
-                        }
-                    }
-
-                    if (!link.isEmpty()) {
-                        String titulo = "Diário Oficial Executivo PR - Edição " + edicao + " - Pág " + pagina;
-                        resultado.add(new PublicacaoScraped(titulo, "", link, data, "PR", edicao, pagina, "DIOE_PR"));
-                    }
-
-                } catch (Exception e) {
-                    LOG.warnf(e, "[DIOE-PR] Erro ao parsear bloco");
+                if (response.statusCode() != 200) {
+                    LOG.warnf("[DIOE-PR] Status inesperado (%d) ao buscar '%s'", response.statusCode(), palavrasChave);
+                    break;
                 }
+
+                DioeSearchResponse parsed = objectMapper.readValue(response.body(), DioeSearchResponse.class);
+
+                if (parsed.hits() == null || parsed.hits().hits() == null || parsed.hits().hits().isEmpty()) {
+                    break;
+                }
+
+                for (DioeSearchResponse.Hit hit : parsed.hits().hits()) {
+                    DioeSearchResponse.Source source = hit._source();
+                    if (source == null) continue;
+
+                    String link = String.format(
+                            "https://dioe.pr.gov.br/portal/visualizacoes/pdf/%d#/p:%d/e:%d?find=%s",
+                            source.diario_id(), source.pagina(), source.diario_id(),
+                            URLEncoder.encode(palavrasChave, StandardCharsets.UTF_8));
+
+                    String titulo = "Diário Oficial Executivo PR - Edição " + source.diario_id()
+                            + " - Pág " + source.pagina();
+
+                    resultado.add(new PublicacaoScraped(
+                            titulo,
+                            source.conteudo(),
+                            link,
+                            source.data(),
+                            "PR",
+                            String.valueOf(source.diario_id()),
+                            String.valueOf(source.pagina()),
+                            "PARANA_API"
+                    ));
+                }
+
+                paginasLidas++;
+                if (parsed.hits().hits().size() < PAGE_SIZE) break;
+                offset += PAGE_SIZE;
             }
 
             LOG.infof("[DIOE-PR] Encontradas %d publicações para '%s'", resultado.size(), palavrasChave);
@@ -136,5 +116,11 @@ public class DioeParanaScraper implements DiarioOficialScraper {
         }
 
         return resultado;
+    }
+
+    private record DioeSearchResponse(Hits hits) {
+        private record Hits(List<Hit> hits) {}
+        private record Hit(Source _source) {}
+        private record Source(String conteudo, String data, int pagina, long diario_id) {}
     }
 }
