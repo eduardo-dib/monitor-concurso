@@ -13,14 +13,14 @@ import java.util.List;
 public class AlertaService {
 
     @Transactional
-    public AlertaMonitoramentoEntity criar(UsuarioEntity usuario, String palavrasChave, String estado, String municipio, String orgao,  FonteMonitoramento fonte) {
+    public AlertaMonitoramentoEntity criar(UsuarioEntity usuario, String palavrasChave, String estado, String municipio, String orgao, FonteMonitoramento fonte) {
         AlertaMonitoramentoEntity alerta = new AlertaMonitoramentoEntity();
         alerta.usuario = usuario;
         alerta.palavrasChave = palavrasChave;
         alerta.estado = estado;
         alerta.municipio = municipio;
         alerta.orgao = orgao;
-        alerta.fonte = alerta.fonte != null ? alerta.fonte : FonteMonitoramento.TODOS;
+        alerta.fonte = fonte != null ? fonte : FonteMonitoramento.TODOS;
         alerta.persist();
         return alerta;
     }
