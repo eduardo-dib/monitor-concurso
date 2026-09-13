@@ -5,17 +5,21 @@ import axios from 'axios'
 import { criarAlerta } from '@/api/alertas'
 import { ESTADOS } from '../constants/EstadoOption.ts'
 import type { ApiErrorResponse, FonteMonitoramento } from '@/types/api'
+import MunicipioAutocomplete from '../components/MunicipioAutoComplete.vue'
 
 const router = useRouter()
 
 const palavrasChave = ref('')
 const estado = ref('')
+const municipio = ref('')
 const fonte = ref<FonteMonitoramento>('ESTADUAL')
 
 const carregando = ref(false)
 const erro = ref('')
 
 const estadoSelecionado = computed(() => ESTADOS.find((e) => e.sigla === estado.value))
+const mostrarMunicipio = computed(() => fonte.value === 'MUNICIPAL' || fonte.value === 'TODOS')
+const mostrarEstado = computed(() => fonte.value === 'ESTADUAL' || fonte.value === 'TODOS')
 
 async function handleSubmit() {
   erro.value = ''
@@ -24,7 +28,7 @@ async function handleSubmit() {
     await criarAlerta({
       palavrasChave: palavrasChave.value,
       estado: estado.value,
-      municipio: '',
+      municipio: mostrarMunicipio.value ? municipio.value : '',
       orgao: '',
       fonte: fonte.value,
     })
@@ -51,9 +55,9 @@ async function handleSubmit() {
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div>
-          <label for="palavrasChave" class="block text-sm font-medium text-primary mb-1">
-            Palavras-chave
-          </label>
+          <label for="palavrasChave" class="block text-sm font-medium text-primary mb-1"
+            >Palavras-chave</label
+          >
           <input
             id="palavrasChave"
             v-model="palavrasChave"
@@ -65,6 +69,27 @@ async function handleSubmit() {
         </div>
 
         <div>
+          <label for="fonte" class="block text-sm font-medium text-primary mb-1">Fonte</label>
+          <select
+            id="fonte"
+            v-model="fonte"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="ESTADUAL">Estadual</option>
+            <option value="MUNICIPAL">Municipal</option>
+            <option value="TODOS">Estadual + Municipal</option>
+          </select>
+        </div>
+
+        <div v-if="mostrarMunicipio">
+          <label class="block text-sm font-medium text-primary mb-1">Município</label>
+          <MunicipioAutocomplete v-model="municipio" />
+          <p class="text-xs text-gray-400 mt-1">
+
+          </p>
+        </div>
+
+        <div v-if="mostrarEstado">
           <label for="estado" class="block text-sm font-medium text-primary mb-1">Estado</label>
           <select
             id="estado"
@@ -80,7 +105,7 @@ async function handleSubmit() {
             v-if="estadoSelecionado && !estadoSelecionado.coberto"
             class="text-xs text-amber-600 mt-1"
           >
-            Este estado ainda não tem integração ativa — o alerta será salvo, mas não vai gerar
+            Este estado ainda não tem integração ativa, o alerta será salvo, mas não vai gerar
             notificações até a cobertura ser adicionada.
           </p>
         </div>
