@@ -20,6 +20,7 @@ const erro = ref('')
 const estadoSelecionado = computed(() => ESTADOS.find((e) => e.sigla === estado.value))
 const mostrarMunicipio = computed(() => fonte.value === 'MUNICIPAL' || fonte.value === 'TODOS')
 const mostrarEstado = computed(() => fonte.value === 'ESTADUAL' || fonte.value === 'TODOS')
+const mostrarAvisoFederal = computed(() => fonte.value === 'FEDERAL')
 
 async function handleSubmit() {
   erro.value = ''
@@ -27,7 +28,7 @@ async function handleSubmit() {
   try {
     await criarAlerta({
       palavrasChave: palavrasChave.value,
-      estado: estado.value,
+      estado: mostrarEstado.value ? estado.value : '',
       municipio: mostrarMunicipio.value ? municipio.value : '',
       orgao: '',
       fonte: fonte.value,
@@ -77,16 +78,18 @@ async function handleSubmit() {
           >
             <option value="ESTADUAL">Estadual</option>
             <option value="MUNICIPAL">Municipal</option>
-            <option value="TODOS">Estadual + Municipal</option>
+            <option value="FEDERAL">Federal (Diário Oficial da União)</option>
           </select>
         </div>
+
+        <p v-if="mostrarAvisoFederal" class="text-xs text-gray-400 -mt-2">
+          Busca em todo o Diário Oficial da União, sem filtro de estado ou município.
+        </p>
 
         <div v-if="mostrarMunicipio">
           <label class="block text-sm font-medium text-primary mb-1">Município</label>
           <MunicipioAutocomplete v-model="municipio" />
-          <p class="text-xs text-gray-400 mt-1">
-
-          </p>
+          <p class="text-xs text-gray-400 mt-1"></p>
         </div>
 
         <div v-if="mostrarEstado">
