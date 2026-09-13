@@ -23,6 +23,7 @@ import dev.eduardodib.exception.ErrorException;
 import dev.eduardodib.scraper.DiarioOficialScraper;
 import dev.eduardodib.scraper.ac.AcreScraper;
 import dev.eduardodib.scraper.ce.CearaScraper;
+import dev.eduardodib.scraper.federal.DouScraper;
 import dev.eduardodib.scraper.pa.ParaScraper;
 import dev.eduardodib.scraper.parana.DioeParanaScraper;
 import dev.eduardodib.scraper.rj.RioDeJaneiroScraper;
@@ -114,6 +115,9 @@ public class MonitoramentoResource {
 
     @Inject
     MatoGrossoApiIntegration matoGrossoApiIntegration;
+
+    @Inject
+    DouScraper douScraper;
 
 
     @GET
@@ -413,6 +417,19 @@ public class MonitoramentoResource {
             return Response.ok(resultado).build();
         } catch (Exception e) {
             return ErrorException.internalError("Erro ao buscar no diário de MT", "/monitoramento/buscar-estadual-mt", e);
+        }
+    }
+
+    @GET
+    @Path("/buscar-federal")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarFederal(@QueryParam("query") String query) {
+        try {
+            List<DiarioOficialScraper.PublicacaoScraped> resultado =
+                    douScraper.buscar(query, LocalDate.now().minusDays(10).toString());
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return ErrorException.internalError("Erro ao buscar no DOU", "/monitoramento/buscar-federal", e);
         }
     }
 

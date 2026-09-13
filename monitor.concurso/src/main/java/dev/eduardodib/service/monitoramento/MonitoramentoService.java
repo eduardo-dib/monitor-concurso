@@ -33,7 +33,7 @@ public class MonitoramentoService {
     NotificacaoService notificacaoService;
 
     //@Inject
-   // DioeParanaScraper dioeParanaScraper;
+    // DioeParanaScraper dioeParanaScraper;
 
     @ConfigProperty(name = "monitoramento.busca-desde-criacao-alerta")
     boolean buscaDesdeCriacaoAlerta;
@@ -45,26 +45,48 @@ public class MonitoramentoService {
         return LocalDate.now().minusDays(30).toString();
     }
 
-    public ApiResponse buscarPublicacoes(String query, String estado) {
-        return buscarPublicacoes(query, estado, 0, LocalDate.now().minusDays(30).toString());
+    private static final int PAGE_SIZE = 20;
+    private static final long INTERVALO_MINIMO_MS = 1100;
+
+    private final Object throttleLock = new Object();
+    private volatile long ultimaChamadaQueridoDiario = 0;
+
+    private void aguardarIntervaloMinimo() {
+        synchronized (throttleLock) {
+            long agora = System.currentTimeMillis();
+            long decorrido = agora - ultimaChamadaQueridoDiario;
+            if (decorrido < INTERVALO_MINIMO_MS) {
+                try {
+                    Thread.sleep(INTERVALO_MINIMO_MS - decorrido);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            ultimaChamadaQueridoDiario = System.currentTimeMillis();
+        }
     }
 
-    private static final int PAGE_SIZE = 20;
+    private ApiResponse buscarPublicacoes(String query, String territorioId, int offset, String publishedSince) {
+        aguardarIntervaloMinimo();
+        return queridoDiarioClient.buscar(query, territorioId, PAGE_SIZE, offset, publishedSince);
+    }
 
-    private ApiResponse buscarPublicacoes(String query, String estado, int offset, String publishedSince) {
-        return queridoDiarioClient.buscar(query, estado, PAGE_SIZE, offset, publishedSince);
+    public ApiResponse buscarPublicacoes(String query, String estado) {
+        return buscarPublicacoes(query, null, 0, LocalDate.now().minusDays(30).toString());
     }
 
     @Transactional
     public void processarAlerta(AlertaMonitoramentoEntity alerta) {
         List<PublicacaoEncontradaEntity> novas = new ArrayList<>();
         int offset = 0;
-        String publishedSince = alerta.criadoEm != null
-                ? alerta.criadoEm.toLocalDate().toString()
-                : LocalDate.now().minusDays(30).toString();
+        String publishedSince = calcularDataInicio(alerta);
+
+        String territorioId = (alerta.municipio != null && !alerta.municipio.isBlank())
+                ? alerta.municipio
+                : null;
 
         while (true) {
-            ApiResponse response = buscarPublicacoes(alerta.palavrasChave, alerta.estado, offset, publishedSince);
+            ApiResponse response = buscarPublicacoes(alerta.palavrasChave, territorioId, offset, publishedSince);
 
             if (response == null || response.gazettes == null || response.gazettes.isEmpty()) break;
 

@@ -7,6 +7,7 @@ import dev.eduardodib.client.api.DiarioOficialClient;
 import dev.eduardodib.domain.alertamonitoramento.AlertaMonitoramentoEntity;
 import dev.eduardodib.domain.alertamonitoramento.FonteMonitoramento;
 import dev.eduardodib.scraper.DiarioOficialScraper;
+import dev.eduardodib.scraper.federal.DouScraper;
 import dev.eduardodib.service.monitoramento.MonitoramentoService;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,6 +33,8 @@ public class MonitoramentoScheduler {
     @Inject
     Instance<DiarioOficialClient> clients;
 
+    @Inject
+    DouScraper douScraper;
 
     @Scheduled(every = "{monitoramento.intervalo-busca}")
     void executar() {
@@ -52,6 +55,14 @@ public class MonitoramentoScheduler {
                         LOG.errorf(e, "Erro ao processar alerta %d via Querido Diário (municipal) — suprimindo logs repetidos até normalizar", alerta.id);
                         queridoDiarioFalhando = true;
                     }
+                }
+            }
+
+            if (fonte == FonteMonitoramento.FEDERAL) {
+                try {
+                    monitoramentoService.processarAlertaComScraper(alerta, douScraper);
+                } catch (Exception e) {
+                    LOG.errorf(e, "Erro ao processar alerta %d via DOU", alerta.id);
                 }
             }
 
