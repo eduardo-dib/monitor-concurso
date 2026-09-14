@@ -89,7 +89,7 @@ function handleBlur() {
       <li v-if="carregando" class="px-3 py-2 text-gray-400">Carregando municípios...</li>
       <li v-else-if="erro" class="px-3 py-2 text-red-500">{{ erro }}</li>
       <li v-else-if="filtrados.length === 0" class="px-3 py-2 text-gray-400">
-        Nenhum município encontrado na cobertura do Querido Diário.
+        Nenhum município encontrado.
       </li>
       <li
         v-for="m in filtrados"

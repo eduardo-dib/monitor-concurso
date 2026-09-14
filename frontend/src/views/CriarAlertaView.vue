@@ -17,7 +17,7 @@ const fonte = ref<FonteMonitoramento>('ESTADUAL')
 const carregando = ref(false)
 const erro = ref('')
 
-const estadoSelecionado = computed(() => ESTADOS.find((e) => e.sigla === estado.value))
+const estadosCobertos = computed(() => ESTADOS.filter((e) => e.coberto))
 const mostrarMunicipio = computed(() => fonte.value === 'MUNICIPAL' || fonte.value === 'TODOS')
 const mostrarEstado = computed(() => fonte.value === 'ESTADUAL' || fonte.value === 'TODOS')
 const mostrarAvisoFederal = computed(() => fonte.value === 'FEDERAL')
@@ -57,24 +57,24 @@ async function handleSubmit() {
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div>
           <label for="palavrasChave" class="block text-sm font-medium text-primary mb-1"
-            >Palavras-chave</label
+          >Palavras-chave</label
           >
           <input
-            id="palavrasChave"
-            v-model="palavrasChave"
-            type="text"
-            required
-            placeholder="ex: analista, técnico judiciário"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              id="palavrasChave"
+              v-model="palavrasChave"
+              type="text"
+              required
+              placeholder="ex: analista, técnico judiciário"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
 
         <div>
           <label for="fonte" class="block text-sm font-medium text-primary mb-1">Fonte</label>
           <select
-            id="fonte"
-            v-model="fonte"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              id="fonte"
+              v-model="fonte"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="ESTADUAL">Estadual</option>
             <option value="MUNICIPAL">Municipal</option>
@@ -89,43 +89,36 @@ async function handleSubmit() {
         <div v-if="mostrarMunicipio">
           <label class="block text-sm font-medium text-primary mb-1">Município</label>
           <MunicipioAutocomplete v-model="municipio" />
-          <p class="text-xs text-gray-400 mt-1"></p>
         </div>
 
         <div v-if="mostrarEstado">
           <label for="estado" class="block text-sm font-medium text-primary mb-1">Estado</label>
           <select
-            id="estado"
-            v-model="estado"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              id="estado"
+              v-model="estado"
+              required
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <option value="">Todos os estados</option>
-            <option v-for="e in ESTADOS" :key="e.sigla" :value="e.sigla">
-              {{ e.nome }}{{ e.coberto ? '' : ' (sem integração ainda)' }}
+            <option value="" disabled>Selecione um estado</option>
+            <option v-for="e in estadosCobertos" :key="e.sigla" :value="e.sigla">
+              {{ e.nome }}
             </option>
           </select>
-          <p
-            v-if="estadoSelecionado && !estadoSelecionado.coberto"
-            class="text-xs text-amber-600 mt-1"
-          >
-            Este estado ainda não tem integração ativa, o alerta será salvo, mas não vai gerar
-            notificações até a cobertura ser adicionada.
-          </p>
         </div>
 
         <p v-if="erro" class="text-sm text-red-600">{{ erro }}</p>
 
         <div class="flex gap-3 pt-2">
           <RouterLink
-            to="/alertas"
-            class="flex-1 text-center rounded-full py-2.5 text-sm font-medium text-primary border border-gray-300 hover:bg-gray-50 transition-colors"
+              to="/alertas"
+              class="flex-1 text-center rounded-full py-2.5 text-sm font-medium text-primary border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </RouterLink>
           <button
-            type="submit"
-            :disabled="carregando"
-            class="flex-1 bg-accent text-white font-medium rounded-full py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+              type="submit"
+              :disabled="carregando"
+              class="flex-1 bg-accent text-white font-medium rounded-full py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
           >
             {{ carregando ? 'Criando...' : 'Criar alerta' }}
           </button>
