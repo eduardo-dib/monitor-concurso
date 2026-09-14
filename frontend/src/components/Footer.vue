@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const appVersion = __APP_VERSION__
+</script>
 <template>
   <footer class="bg-surface border-t border-gray-200 mt-auto">
     <div
@@ -6,9 +8,7 @@
     >
       <span>VigiaConcursos</span>
       <div class="flex gap-4">
-        <RouterLink to="/contato" class="hover:text-accent transition-colors"
-          >Contato</RouterLink
-        >
+        <RouterLink to="/contato" class="hover:text-accent transition-colors">Contato</RouterLink>
 
         <RouterLink to="/termos" class="hover:text-accent transition-colors"
           >Termos de Uso</RouterLink
@@ -17,6 +17,7 @@
           >Política de Privacidade</RouterLink
         >
       </div>
+      <p class="text-xs text-gray-400">v{{ appVersion }}</p>
     </div>
   </footer>
 </template>
