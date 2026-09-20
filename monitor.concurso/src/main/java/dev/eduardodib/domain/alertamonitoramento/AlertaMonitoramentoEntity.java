@@ -21,6 +21,8 @@ public class AlertaMonitoramentoEntity extends PanacheEntity {
     public String orgao;
     public LocalDateTime criadoEm = LocalDateTime.now();
     public FonteMonitoramento fonte = FonteMonitoramento.TODOS;
+    @Column(name = "ultima_verificacao")
+    public LocalDateTime ultimaVerificacao;
     public boolean ativo = true;
 
     public static List<AlertaMonitoramentoEntity> findAtivos() {

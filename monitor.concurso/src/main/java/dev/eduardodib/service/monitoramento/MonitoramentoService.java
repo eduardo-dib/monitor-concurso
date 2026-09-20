@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -39,10 +40,19 @@ public class MonitoramentoService {
     boolean buscaDesdeCriacaoAlerta;
 
     private String calcularDataInicio(AlertaMonitoramentoEntity alerta) {
+        if (alerta.ultimaVerificacao != null) {
+            return alerta.ultimaVerificacao.toLocalDate().toString();
+        }
         if (buscaDesdeCriacaoAlerta && alerta.criadoEm != null) {
             return alerta.criadoEm.toLocalDate().toString();
         }
-        return LocalDate.now().minusDays(30).toString();
+        return LocalDate.now().minusDays(5).toString();
+    }
+
+    @Transactional
+    public void marcarVerificado(AlertaMonitoramentoEntity alerta) {
+        alerta.ultimaVerificacao = LocalDateTime.now();
+        alerta.persist();
     }
 
     private static final int PAGE_SIZE = 20;

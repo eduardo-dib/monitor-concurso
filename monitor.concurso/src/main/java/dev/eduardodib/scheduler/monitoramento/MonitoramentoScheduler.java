@@ -45,14 +45,14 @@ public class MonitoramentoScheduler {
 
             if (fonte == FonteMonitoramento.MUNICIPAL || fonte == FonteMonitoramento.TODOS) {
                 try {
-                    monitoramentoService.processarAlerta(alerta); // Querido Diário
+                    monitoramentoService.processarAlerta(alerta);
                     if (queridoDiarioFalhando) {
                         LOG.info("Querido Diário voltou a responder normalmente");
                         queridoDiarioFalhando = false;
                     }
                 } catch (Exception e) {
                     if (!queridoDiarioFalhando) {
-                        LOG.errorf(e, "Erro ao processar alerta %d via Querido Diário (municipal) — suprimindo logs repetidos até normalizar", alerta.id);
+                        LOG.errorf(e, "Erro ao processar alerta %d via Querido Diário (municipal) suprimindo logs repetidos até normalizar", alerta.id);
                         queridoDiarioFalhando = true;
                     }
                 }
@@ -86,6 +86,8 @@ public class MonitoramentoScheduler {
                     }
                 }
             }
+
+            monitoramentoService.marcarVerificado(alerta);
         }
     }
 }

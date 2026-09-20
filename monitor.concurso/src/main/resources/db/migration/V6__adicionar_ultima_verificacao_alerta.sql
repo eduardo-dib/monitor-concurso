@@ -1,0 +1,1 @@
+ALTER TABLE alerta_monitoramento ADD COLUMN ultima_verificacao TIMESTAMP;
